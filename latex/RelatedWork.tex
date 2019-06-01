@@ -1,0 +1,387 @@
+\documentclass[thesis.tex]{subfiles}
+\begin{document}
+
+\chapter{Related Work}
+\label{chap:prevwork}
+
+% Categories from GISTAR
+% * Finite Elements (also contains voxel based GI)
+% * Monte-Carlo ray tracing
+% * Photon Mapping
+% * Instant Radiosity
+% * Many lights (hierarchical! gathering of lights)
+% * Point-based (render points somehow)
+% * Discrete ordinate methods (propagation volumes etc.)
+% * Precomputation
+
+This chapter gives an overview of related realtime global illumination techniques.
+Ritschel et al. \cite{bib:RealtimeGIOverview} already gave a great overview over this field for all approaches before 2012.
+Therefore, we will focus on newer methods and those which are either fundamental, similar or inspirational to this thesis instead of trying to cover the whole field.
+
+\section {Many-Lights Methods} \label{sec:prev:manylights}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\textwidth]{manylights}
+	\caption{\cite{bib:manylightssurvey2014} Two passes of many-light algorithms: Left distribution of virtual lights, right direct lighting using virtual lights.} \label{fig:manylights}
+\end{figure}
+Many-light methods reduce the global illumination to the smaller problem of calculating the direct lighting of many virtual light sources.
+The basic principle was first described in Keller's work on Instant Radiosity \cite{bib:instantradiosity} (IR).
+All many-light approaches perform two passes (see \autoref{fig:manylights}):
+First, virtual light sources are distributed in the scene.
+Then, each virtual light source performs direct lighting.
+\\
+The main advantages of the many-light approach in general are its relatively easy unified framework and its good scalability in performance and quality.
+Global illumination using $M$ virtual lights can generally be expressed as following:
+\begin{equation}
+L_o(\mathrm{x}, \omega_o) = \sum\limits_{i=1}^{M} f_r(\mathrm{x}, \overrightarrow{\mathrm{x}\mathrm{x}_i}, \omega_o) \cdot G(\mathrm{x}, \mathrm{x}_i) \cdot \hat{V}(\mathrm{x}, \mathrm{x}_i) \cdot I_i(\overrightarrow{\mathrm{x}_i\mathrm{x}})
+%\underbrace{f_r(\mathrm{x}_i, \omega_i, \overrightarrow{\mathrm{x}_i\mathrm{x}}) \cdot \phi_i}_{I_i(\overrightarrow{\mathrm{x}_i\mathrm{x}})}
+\end{equation}
+Where $G(\mathrm{x}, \mathrm{x}_i)$ is the geometry term that describes the light transfer from the virtual light in $\mathrm{x}_i$ to the surface in point $\mathrm{x}$.
+It depends on the type of the virtual light source.
+The visibility $\hat{V}(\mathrm{x}, \mathrm{x}_i)$ of a virtual light is either zero or one for dimension-less lights. % and $\phi_i$ its incoming flux.
+$I_i$ gives the intensity distribution of the $i$th virtual light which is evaluated in the direction $\overrightarrow{\mathrm{x}_i\mathrm{x}}$ from virtual light to the surface point.
+It is defined by the product between BRDF in the point $\mathrm{x}_i$ and the incoming flux $\mathrm{x}_i$ originating from the direction $\omega_i$.
+%The product of the BRDF $f_r$ at the point $\mathrm{x}_i$, evaluated with the  and the incoming flux $\phi_i$ gives the intensity from the $i$th virtual light in the direction
+\begin{equation}
+I_i(\overrightarrow{\mathrm{x}_i\mathrm{x}}) = f_r(\mathrm{x}_i, \omega_i, \overrightarrow{\mathrm{x}_i\mathrm{x}}) \cdot \phi_i
+\end{equation}
+The original instant radiocity approach distributes the light by tracing photon rays from the light source that are bounced inside the scene.
+Like more recent techniques, IR uses virtual point light sources (VPL).
+\\
+Dachsbacher et al. \cite{bib:manylightssurvey2014} recently did a detailed survey on many-lights for both offline and real-time rendering.
+We focus here mainly on important real-time approaches.
+
+\subsection{Reflective Shadow Mapping} \label{sec:prev:rsm}
+One of the most important real-time global illumination algorithms is reflective shadow mapping by Dachsbacher et al. \cite{bib:reflectiveshadowmaps} on which many other approaches rely, including the one presented in this thesis.
+It handles the virtual light distribution with the rasterization of an augmented shadow map, the reflective shadow map (RSM).
+The RSM does not only contain depth as normal shadow maps, but also additional layers containing reflected (diffuse) flux and the normal of the seen surface.
+Each texel of this shadow map is then used as virtual point light.
+The original paper shades each pixel with a given number of sampled VPLs without taking indirect shadows into account.
+Also, the technique handles only a single indirect bounce of diffuse lighting since the VPLs are strictly speaking hemispherical Lambert emitters.
+%(Like most literature we will use the term "VPL" interchangable)
+
+While RSM offers an easy way to generate virtual lights in real-time, it does basically not alter the way how those lights are applied and how their visibility is determined.
+There are a few techniques that try to reduce the number of virtual lights and create few virtual area lights (VAL) by clustering.
+Both Dong et al. \cite{bib:clusturedvisiblity:dong} and Prutkin et al. \cite{bib:clusturedvisiblity:prutkin} suggest to cluster VPLs using k-means.
+The former performs the clustering in world-space, the later directly in image space of the RSM.
+Both approaches suffer from temporal coherence problems since the size and position of the clusters can change rapidly.
+
+\subsection{VPL Bias and Compensation} \label{sec:fig:rsmbias}
+Using virtual point lights, the geometry term is defined as following:
+\begin{align}
+G(\mathrm{x}, \mathrm{x}_i)_{VPL} = (\hat{\mathbf{n}}_i \cdot \overrightarrow{\mathrm{x}_i\mathrm{x}})^+ \cdot \frac{(\hat{\mathbf{n}} \cdot \overrightarrow{\mathrm{x}\mathrm{x}_i} )^+}{||\mathrm{x} - \mathrm{x}_i||^2}
+\end{align}
+Where $\hat{\mathbf{n}}$ and $\hat{\mathbf{n}}_i$ are the surface normals in point $\mathrm{x}$ and $\mathrm{x}_i$ respectively.
+Note that the geometry term is a combination of the photometric distance law and the definition of intensity for Lambert emitter as described earlier in \autoref{sec:preq:theo:relation}. % since VPLs are dimension-less Lambert emitters.
+\\
+\begin{figure}[h]
+\centering
+\begin{subfigure}[b]{0.48\textwidth}
+	\includegraphics[width=\textwidth]{rsmbias/default}
+\end{subfigure}
+\begin{subfigure}[b]{0.48\textwidth}
+	\includegraphics[width=\textwidth]{rsmbias/val}
+\end{subfigure}
+\caption{Left: Small bright splotches due to inverse squared distance in geometry term. Right: Using virtual area lights as proposed in \cite{bib:LightskinPaper}.}\label{fig:rsmbias}
+\end{figure}
+The inverse-squared distance between shading point and light source introduces a singularity, as it reaches zero in the limit.
+Therefore, the contribution of a VPL converges to infinity at its position.
+The result are bright splotches, mostly visibility in creases, as seen left in \autoref{fig:rsmbias}.
+
+Typically these artifacts are avoided by clamping the geometry term to a user defined maximum which obviously introduces a bias.
+There are several bias compensation techniques:
+Kollig and Keller \cite{bib:biascomp:kk04} shoot rays to nearby surfaces and evaluate the lighting there to transport it back to the original surface.
+However, this technique may degenerate to path-tracing and is thus not suitable for interactive applications.
+Other techniques try to compensate the bias approximately.
+E.g. the bias compensation by Nov\'{a}k et al. \cite{bib:biascomp:novak11} stores the bounded transport and computes the residual transport via a screen-space post-processing step.
+Although it misses invisible surfaces, it is both efficient and plausible in its results.
+\\
+There are also several approaches that use different types of virtual light sources instead of VPLs.
+Ha{\v{s}}an et al. \cite{bib:biascomp:vsl} introduce a new light type, the virtual spherical light (VSL).
+Instead of a performing point-to-point evaluations, this type of light is evaluated by an integration over the solid angle subtended by the light source.
+Their approach is biased but does not cause bright splotches and preserves the overall energy by redistributing.
+\\
+Lensing et al. \cite{bib:LightskinPaper} use approximated disc shaped lights.
+Since they use reflective shadow maps, the area of these virtual area lights $A_{i}$ can easily be estimated by the distance of the VAL to the light source and the solid angle a RSM texel subtends.
+They show that if all surfaces are assumed to be diffuse, the lighting can be solved analytically by a simple change in the geometry term:
+\begin{align}
+G(\mathrm{x}, \mathrm{x}_i)_{VAL} = (\hat{\mathbf{n}} \cdot \overrightarrow{\mathrm{x}\mathrm{x}_i})^+ \cdot \frac{(\hat{\mathbf{n}_i} \cdot \overrightarrow{\mathrm{x}_i\mathrm{x}} )^+}{||\mathrm{x} - \mathrm{x}_i||^2 + A_{i}}
+\end{align}
+Using this geometry term, splotches at specular surfaces with low roughness can still occur.
+However, most singularities are no longer visible (see \autoref{fig:rsmbias} right).
+We use this technique in our approach since it is extremely fast, easy to implement and more plausible than a bounded geometry term.
+
+Bias compensation in participating media are considerably more complex but not handled in this thesis.
+
+\subsection{Shadows for Many-Lights}
+Computing visibility for a large number of virtual lights is a difficult problem for real-time renderers since classic shadow computations like shadow mapping are far to expensive for this task.
+There are a few methods that try to optimize shadow mapping for rendering large amount of lights:
+\\
+Imperfect shadow maps by Ritschel et al. \cite{bib:imperfectshadowmaps} leverage the fact that exact secondary visibility is not needed.
+First, points are placed at random locations on the scene geometry.
+Shadow maps are then computed using these points instead of triangles which is much faster.
+Holes in the shadow maps are filled with a push-pull heuristic.
+The succeeding paper \cite{bib:imperfectshadowmaps:adapative} makes the technique (both VPL placement and shadowing) view adaptive and allows larger scenes.
+\\
+Olsson et al. \cite{bib:virtualshadowmaps} store shadow maps on a large virtual texture.
+Each frame it is decided which lights actually need to compute shadow maps, how high their resolution should be and which objects act as occluders.
+All of these operations are performed on the GPU.
+
+Other methods like Micro-rendering by Ritschel et al. \cite{bib:microrendering} or ManyLoDs by Holländer et al. \cite{bib:manylods} use hierarchical data structures to be able to render objects at the exactly needed detail.
+This allows very fast approximations of visibility.
+These techniques have also several other implications, for example on how shading performed, which is why they are often separately categorized as \emph{point-based GI}.
+
+%\subsection{Shading}
+%Multi-resolution splatting techniques ([All Nichols] Hierarchical
+%image-space radiosity for interactive global illumination, Multiresolution splatting for indirect illumination, Interactive indirect illumination using adaptive multiresolution splatting) are not as efficient as "Tiled Deferred Shading" (according to \cite{bib:clusturedpreconvoledradiancecaching} (where it is just a side note!)) ... logically Tiled Deferred Shading is even better.
+%Interleaved Sampling (Interleaved sampling. In
+%Proc. of Eurographics Workshop on Rendering (2001)) also a good idea 
+%
+%Clustured Forward/Deferred Shading: Finding Unique clusturs is DIFFERENT in paper \cite{bib:clusturedshading} and practical implementation like "Pratical Clustured Shading" (SIGG2013, Humus). Paper uses (local) sorting and page tables. Humus uses Volume Texture. Ollson Siggra2013 presentation uses parallel prefix sum.
+%
+
+\section{Caching Methods}
+Many recent real-time global illumination methods, including our own, compute indirect lighting only for special \emph{light caches} and interpolate the results of those across many pixels.
+Which quantities a light cache saves varies from technique to technique as well as the strategy that is responsible for creating light caches either at runtime or as a pre-computation step.
+Our approach relies on dynamic cache placement, its implications and trade-offs will be discussed in \autoref{sec:impl:dyncacheplace}.
+Because caches are often placed sparsely, most of the following techniques are prone to light bleeding artifacts, i.e. light "seeping" incorrectly through blockers.
+
+\subsection{(Irr-)Radiance Caching}
+The basic idea of light caching was first introduced by Ward et al. \cite{bib:irradiancecaching} in the form of Irradiance Caching (IC) to speed up path-tracing.
+Each time a ray intersects a diffuse surface it first checks if there are nearby caches from which the irradiance can be interpolated.
+If not, the irradiance is computed and a new cache is created at this place.
+There are many extensions to this method, most notably Radiance Caching by Krivanek et al. \cite{bib:radiancecaching} (RC) which supports glossy surfaces by saving incoming radiance encoded in a high order spherical harmonics representation.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=\textwidth]{preconvolvedradiancecaching}
+	\caption{\cite{bib:preconvoledradiancecaching} Storage and evaluation of Irradiance (IC), Radiance (RC) and Pre-Convolved Radiance Caching. For all techniques cache items (blue circles) are interpolated for image pixels (orange circle).
+	How cache items are evaluated differs (right):
+	IC stores an irradiance value which is interpolated (top row). RC (middle row) stores radiance in an SH representation and convolves it with the likewise stored BRDF.
+	Pre-convolved RC (bottom row) store mipmaps of incoming radiance which can be queried using the BRDF.} \label{fig:preconvolvedradiancecaching}
+\end{figure}
+Pre-convoled Radiance Caching by Scherzer et al. \cite{bib:preconvoledradiancecaching} is able to perform radiance caching with a single indirect bounce at interactive frame-rates.
+As in the original radiance caching, caches lie on surfaces.
+For each cache a hemisphere of all incoming radiance values is rendered, as depicted in \autoref{fig:preconvolvedradiancecaching}.
+To be able to quickly evaluate arbitrary specular exponents (the paper makes use of the Phong BRDF), the result is pre-convolved using mipmapping.
+Caches are placed statically and apply their results to the screen using splatting, i.e. rendering them directly to the deferred shading buffer.
+Clustured Pre-Convolved Radiance Caching, an extension to the previous method by Rehfeld et al. \cite{bib:clusteredpreconvoledradiancecaching}, places the radiance caches according to screen-space clusters which makes the technique more scalable but less temporal coherent.
+Additionally it uses cone tracing (which will be explained in \autoref{sec:prev:voxelmethods}) in a prefiltered voxel grid to gather radiance from the caches instead of splatting them to the screen.
+
+\subsection{(Irr-)Radiance Volumes}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\textwidth]{gregerirradiancevolume}
+	\caption{\cite{bib:irradiancevolume} Visualization of an irradiance volume. Each sphere visualizes a light cache colored by the local irradiance for each direction. } \label{fig:irradiancevolume}
+\end{figure}
+Irradiance volumes as proposed by Greger et al. \cite{bib:irradiancevolume} are very popular to light dynamic objects in otherwise static environments.
+An irradiance volume is a regular grid in which each grid cell saves precomputed irradiance values for all possible surface normals.
+The original work uses hemispherical grid mappings for this task.
+However, other representations like spherical harmonics are more common in praxis.
+Each surface can now look-up and interpolate precomputed irradiance values from the nearest grid cells to perform diffuse lighting. 
+Note however that this method can not handle light bounced off or occluded by dynamic objects.
+
+The advantage of saving irradiance for all possible normals over saving incoming radiance for each direction, is that an irradiance signal has a much lower frequency than radiance.
+Only a single irradiance value is needed for diffuse lighting of a surface (i.e. a given normal) which is equivalent to a hemispherical integration over the incoming radiance.
+Nonetheless, if arbitrary BRDFs are to be supported, the total incoming irradiance for a given normal is not sufficient and integration over radiance is necessary.
+Note however, that for a spherical harmonics representations, integration over a lobe given in SH has the same costs as evaluating the SH coefficients for a certain direction (as earlier described in \autoref{sec:preq:shprojectrecon}).
+
+\subsubsection{Real-Time}
+Njasure et al. \cite{bib:nijasure:rtirradiancevol} compute radiance volumes at runtime with interactive frame rates by rendering a cubemap at each grid point to gather radiance which is afterwards encoded in a low number of spherical harmonics coefficients.
+
+Radiance Hints by Papaioannou \cite{bib:radiancehints} retrieve radiance from a RSM and approximate multiple diffuse light-bounces between the light caches.
+Like the RSM algorithm on which the technique is based, occlusion of VPLs is not handled.
+For the secondary bounces however, visibility of the radiance hints (= light caches) is approximated by the minimum and maximum distance of the used RSM samples.
+\\
+The recent approach of Vardis et al. \cite{bib:radiancecachechromaticcompression} improves upon Radiance Hints by using chrominance compression and a occupancy grid to reduce cache updates.
+They use less SH bands for the chroma part of the radiance to allow higher order bands for the more import luminance portion.
+Which radiance caches contribute to the scene's surfaces is determined by down-sampling a real-time binary voxelization.
+Contrary to Radiance Hints, caches in mid-air will not be updated.
+The visibility of virtual light sources is determined by sparse sampling in the binary voxelization along the connecting rays.
+
+Radiance volume approaches in general are rather robust against temporal coherence issues.
+The cache placement and interpolation is predefined and thus the only source of incoherence is the lighting process itself.
+%Problems may occur when light visibility for caches is determined too aggressively which would case a cache to turn black/bright from one frame to another.
+%However, this is not the case for any of the aforementioned methods.
+
+\section{LightSkin}
+ % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{figure}[h]
+\centering
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\textwidth]{lightskin_cachedistri}
+\caption{Cache distribution.}
+\end{subfigure}
+\begin{subfigure}[b]{0.49\textwidth}
+\centering
+\includegraphics[width=\textwidth]{lightskin}
+\caption{Lighting results.}
+\end{subfigure}
+\caption{\cite{bib:lightskinthesis} LightSkin global illumination approach. } \label{fig:lightskin}
+\end{figure}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+LightSkin \cite{bib:LightskinPaper} by Lensing et al. uses precomputed light cache positions which are placed directly on surfaces (see \autoref{fig:lightskin}).
+This has several advantages over radiance volume approaches.
+Each cache needs to evaluate the lighting only for a single given normal and set of material properties.
+Neighbor-relationships are precomputed which allows for efficient real-time interpolation of both indirect diffuse and glossy reflections.
+A smooth indirect shadow approximation is achieved by pre-computing a size measure for the light caches which makes it possible to use them as coarse blockers.
+The combination of clever cache placement during the pre-computation and the sophisticated interpolation at runtime makes it possible to achieve a relatively high lighting quality even for low amounts of caches, without any temporal artifacts.
+
+While an expensive pre-computation step is needed to place the light caches, compute their neighbors and determine their properties, the approach is not limited to static scenes as caches can be moved with animated objects.
+Depending on the number of caches, only smooth lighting can be performed and the technique does not scale well with large scenes since the number of caches for distant objects can not be reduced trivially.
+Neighborship-relations are either saved per vertex or on a texture. 
+Both methods can increase the memory footprint of a scene considerably.
+
+Furthermore, Lensing describes in his PhD thesis \cite{bib:lightskinthesis} how to use LightSkin for subsurface scattering effects and proposes applications in mixed reality scenarios.
+
+\section{Discrete Ordinate Methods}
+Discrete ordinate methods compute light transport by exchanging energy between a cellular discretization of the scene.
+Usually it is possible to update the lighting iteratively across many frames.
+As long as there are no high frequency changes, slow adaption can exploit frame coherencies to benefit the overall performance drastically.
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{figure}[h]
+\centering
+\begin{subfigure}[b]{0.35\textwidth}
+\centering
+\includegraphics[width=\textwidth]{lpv/principle}
+\caption{Light propagation principle.}
+\label{fig:lpv:principle}
+\end{subfigure}
+~~~~
+\begin{subfigure}[b]{0.53\textwidth}
+\centering
+\includegraphics[width=\textwidth]{lpv/cascading}
+\caption{Cascading of multiple LPVs.}
+\label{fig:lpv:cascading}
+\end{subfigure}
+
+\vspace{0.3cm}
+
+\begin{subfigure}[b]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{lpv/lowfreq}
+\caption{Low frequency indirect lighting.}
+\label{fig:lpv:results}
+\end{subfigure}
+\begin{subfigure}[b]{0.48\textwidth}
+\centering
+\includegraphics[width=\textwidth]{lpv/media}
+\caption{Lit participating media.}
+\end{subfigure}
+\caption{\cite{bib:lpt} Cascaded LPV, principles and results.}
+\end{figure}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+A popular real-time representative of these methods is Cascaded Light Propagation Volumes by Kaplanyan and Dachsbacher \cite{bib:lpt}.
+Using a RSM, light is injected into a light propagation volume (LPV).
+The LPV is a regular grid wherein each cell contains a light intensity distribution, represented by a few low order spherical harmonic coefficients.
+A second grid stores a volumetric representation used for fuzzy occlusion.
+Considering these blockers, the light is then propagated across the LPV in each frame (see \autoref{fig:lpv:principle}).
+For better scalability with larger scenes, multiple nested LPVs are used, as visualized in \autoref{fig:lpv:cascading}.
+After the propagation, the LPVs can easily be looked-up to light the scene.
+The approach does not rely on any pre-computation and is able to capture diffuse and very low frequency specular lighting in real-time (see \autoref{fig:lpv:results}).
+However, it is very prone to light bleeding artifacts and, depending on the LPV resolution, light may only be transported for short distances.
+\\
+The original approach obtained an approximate blocker volume from the already existing information in the RMS and the camera view.
+Rasterized Voxel-based GI by Doghramachi \cite{bib:rasterizedvbgi} presents an alternative real-time voxelization approach with several implementation improvements.
+
+\section{Voxel-Volume Methods} \label{sec:prev:voxelmethods}
+Due to the increasing processing power of GPUs and the development of real-time voxelization algorithms, methods using ray or cone tracing within a voxelized scene representation have gained popularity in the last few years.
+Voxelized representations have several advantages over classic triangle-based scenes:
+The level of detail can be controlled trivially, random access using world coordinates can easily be achieved, intersection tests are simple to perform etc..
+The simplest data structures contain only a single binary value per voxel which determines whether the cell is solid or not (binary voxelization).
+However, other informations like flux, normals or continuous opacity are sometimes encoded as well.
+
+\subsection{Voxelization via Rasterization}
+The GPUs rasterization capabilities can be used for extremly fast voxelization.
+There are boundary voxelizations that encode only the surfaces of an object and solid voxelizations which also capture the interiors of a model as well.
+Solid voxelization is generally more difficult to achieve since more write operations are needed and the interior of an object might not always be clearly defined.
+
+A general problem with GPU rasterization is the lack of conservativity. 
+For voxelization it is usually needed that all voxels that are touched by a triangle are marked.
+This is not even the case for standard 2D rasterization.
+To overcome this issue \cite{bib:GPUGems2}[Chapter 42] by Hasselgren et al. propose to enlarge triangles and remove superfluous pixels by discarding them in the fragment shader.
+Very recent GPUs expose new rasterization modes to accomplish conservative rasterization more quickly in hardware \cite{bib:nvconservativeraster}.
+
+%Since GPU rasterization rules are There are various algorithms with different 
+
+One of the first algorithms using the GPUs rasterization pipeline was invented by Fang and Chen \cite{bib:fangvoxelization} which needed to draw the entire scene once per volume slice.
+A later approach by Eisemann and D{\'e}coret \cite{bib:eisemann:boundaryvox} achieves binary voxelization in a single pass.
+Since it writes to one or more 2D targets, it achieves a limited bit depth and can not write directly to a volume texture.
+The algorithm was later extended to support solid geometry as well \cite{bib:eisemann:solidvox}. 
+\cite{bib:dong:voxelization} presented a similar approach that handles geometry that lies parallel to the viewing direction with less errors.
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{voxelizationpipe}
+\caption{\cite{bib:openglinsightsvoxel} Illustration of single pass voxelization pipeline. }
+\label{fig:voxelization}
+\end{figure}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+Many of older methods relied on graphics hardware which was not able to perform random write accesses.
+Newer methods can leverage these possibilities and are able to perform high quality boundary voxelization in a single pass.
+In this thesis we rely on a conservative single pass voxelization technique by Crassin and Green \cite{bib:openglinsightsvoxel}.
+\autoref{fig:voxelization} illustrates how it works.
+Contrary to \cite{bib:eisemann:boundaryvox} it is able to write into a volume texture instead of writing bits in a set of 2D targets.
+The geometry shader decides on the dominant direction of each triangle and uses it as projection axis to maximize the output of the rasterization stage.
+Conservative rasterization is achieved with the earlier mentioned technique by Hasselgren et al. \cite{bib:GPUGems2}[Chapter 42]. 
+Each pixel writes up to three values along the projection axis into the volume texture to mark all voxels that are touched by the source triangle.
+If necessary additional attributes can be computed in the fragment shader.
+
+\subsection{Voxel Cone/Ray Tracing} \label{sec:prev:voxelcone}
+Voxel-Based GI by Thiedemann et al. \cite{bib:voxelgi} traces multiple rays at each pixel's world position through a binary voxelization.
+Whenever a ray hits a surface, it performs a shadow mapping test and, if succeeded, adds light (radiance) to its originating pixel using flux from a reflective shadow map.
+%When a ray hits a surface or exceeds a maximum stepping length, light is added using the projected RSM properties in this point if it succeeds the shadow mapping test, i.e. it is visible by the light source.
+Since tracing rays through the voxel-volume is a very costly operation, indirect lighting is only possible over short distances.
+
+ % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{figure}[h]
+\centering
+ \includegraphics[width=\textwidth]{voxelconetracing}
+\caption{\cite{bib:voxelconetracing} Illustration of Voxel Cone Tracing. } \label{fig:voxelconetracing}
+\end{figure}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+Voxel Cone Tracing by Crassin et al. \cite{bib:voxelconetracing} overcomes this issue by tracing cones instead of rays through a mip-mapped voxel volume.
+In addition to the occlusion value, each voxel also saves flux, which was previously injected by an RSM, and a normal.
+\autoref{fig:voxelconetracing} gives a short overview over the approach.
+In each visible point a few cones covering the local hemisphere are traced to achieve diffuse lighting.
+During the tracing of a cone, the step size and the sampled volume-mipmap-level increases, so that the samples cover approximately the entire cone.
+This technique allows Voxel Cone Tracing to trace very long cones at relatively low costs.
+Since occlusion is fuzzy in all but the lowest mipmap-level, lighting is applied continuously with each sample depending on its opacity.
+The tracing stops when the cone is completely blocked using an emission-absorption model.
+Additionally, each voxel saves its flux anisotropically for more accurate lighting in higher mip-levels.
+Using an extra, thinner cone for the specular highlight the approach achieves relatively accurate reflections within the same framework.
+The main draw-back of Voxel Cone Tracing is its high memory footprint.
+Because of this the original work makes use of a sparse voxel octree.
+However, for practical considerations the technique has been used in production with cascaded volumes instead \cite{bib:fumufu:vct}.
+
+Layered Reflective Shadow Maps by Sugihara et al. \cite{bib:layeredrsm} works very similar but decouples occlusion from lighting data.
+Visibility determination is handled via cone tracing as before, while the actual lighting is performed by lookups in a pre-filtered Layered Reflective Shadow Map.
+The RSM is split up into multiple layers to be able to create pre-filterable textures without large depth or normal discontinuities.
+Doing so avoids most of the memory and initialization/update overhead associated with the large voxel data structure, since each voxel encodes only binary visibility information.
+While the approach has a significantly lower memory footprint than the original Voxel Cone Tracing, it suffers from temporal coherency issues for highly gloss surfaces and does not scale well with the number of light sources.
+
+\section{Summary} %\todo{better title? more like "setting into context"?}
+There are only few techniques that fulfill the goals of this thesis (\autoref{bib:goals}).
+Most notably Voxel Cone Tracing \cite{bib:voxelgi} (VCT) and Cascaded Light Propagation Volumes \cite{bib:lpt} (LPV) are able to perform global illumination without any pre-computations.
+Both have already been used in production environments. % \todo{citation needed}
+VCT achieves very high quality rendering at to the price of large complicated memory structures (sparse voxel octree on GPU) and, compared to LPV, at much lower frame-rates.
+LPV on the other hand is often not able to catch indirect lighting over longer distances and is very prone to light bleeding artifacts.
+Another completely dynamic technique is the radiance volume by Vardis et al. \cite{bib:radiancecachechromaticcompression}.
+Like LPV it is able to capture diffuse lighting but has less limitations on light transport distance.
+
+All three techniques rely on reflective shadow mapping which is fundamental to many real-time lighting approaches.
+On the other hand, direct usage of RSMs often suffers from temporal artifacts as seen in many previous works.
+Caching light at specific locations leverages the low frequency of most indirect lighting situations and can reduce shading costs tremendously.
+Voxelized scene representations are used in many recent works since real-time voxelization is by now cheaply available.
+
+This thesis is mostly inspired by LightSkin \cite{bib:LightskinPaper} which is able to robustly compute both diffuse and indirect lighting at a relatively high quality.
+The final algorithm presented in the next chapter is similar to the recent radiance volume method of Vardis et al. \cite{bib:radiancecachechromaticcompression} of which we were not aware until shortly before the end of our project.
+However, there are several key differences that will be elaborated in \autoref{sec:eva:comparisiontoother}.
+
+
+\subfilebib % Makes bibliography available when compiling as subfile
+\end{document}
