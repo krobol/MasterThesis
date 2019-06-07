@@ -57,8 +57,12 @@
 \renewcommand*{\subsectionautorefname}{Subsection}
 \renewcommand*{\subsubsectionautorefname}{Subsubsection}
 
+%roman letters
+\newcommand{\uproman}[1]{\uppercase\expandafter{\romannumeral#1}}
+\newcommand{\lowroman}[1]{\romannumeral#1\relax}
+
 % Citeing
-\usepackage[numbers]{natbib}
+\usepackage[numbers,sort]{natbib}
 
 % Use subfiles instead of includes
 \usepackage{subfiles}
@@ -95,7 +99,6 @@
 \newcommand{\halfpageimage}{0.496\textwidth}
 
 \begin{document}
-bla
 % Undef subfilebib for main file, so there is only one bibliography when compiling the whole thesis.
 \def\subfilebib{}
 
@@ -105,15 +108,15 @@ bla
 % TOC
 \subfile{TOC}
 
-\subfile{Acknowledgements}
-\subfile{Abstract}
+%\subfile{Acknowledgements}
+%\subfile{Abstract}
 
-\subfile{Notation}
+%\subfile{Notation}
 
 % The Thesis itself
 \subfile{Introduction}
 %\subfile{Prerequisites}
-%\subfile{RelatedWork}
+\subfile{RelatedWork}
 %\subfile{Main}
 %\subfile{Evaluation}
 %\subfile{Conclusion}
@@ -126,12 +129,12 @@ bla
 %\subfile{appendix-abandonedtech}
 %\subfile{appendix-formulas}
 
-%\bibliographystyle{alphaurl}
-%\bibliography{bibliography}
+\bibliographystyle{abbrv}
+\bibliography{C:/Users/ditaW/Documents/Master Thesis/MasterThesis/latex/bibliography.bib}
 
-%\subfile{StatementOfAuthorship}
+\subfile{StatementOfAuthorship}
 
 % List of figures. Quite useless I think atm, but maybe I'll come back to it. Note that currently there are no short captions - it is possible to define both short and long captions.
-%\listoffigures
+\listoffigures
 
 \end{document}
