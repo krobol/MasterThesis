@@ -2,47 +2,68 @@
 \begin{document}
 
 \chapter{Related Work}
-\section{Fourier Transform}
+\section{Fourier Transform} \label{fourier_transform}
 
-In mathematics the fourier transform is a function that approximates a one-dimensional signal in the time domain by a sum of sine and cosine functions with different frequencies. The result is then in the frequency domain. This means the signal is represented by frequencies, amplitudes and phases.
+In mathematics the fourier transform \cite{nixon2012feature} is a function that approximates a one-dimensional signal in the time domain by a sum of sine and cosine functions with different frequencies. The result is then in the frequency domain. This means the signal is represented by frequencies, amplitudes and phases.
 \\ 
 It is possible to visualize how the fourier transform works: Consider going along the outline of a circle over time. While going along on the outline of the circle we construct a two-dimensional function in the following way. We use the elapsed time as the x-values of the constructed function. For the y-values of the function we use the y-values of the position on the circle outline at each timepoint. The resulting function is a sine wave as seen in \ref{fig:fourier}. There are three parameters that can be adjusted in this process: the radius of the circle, the speed at which we go along the outline of the circle, and the starting position on the outline of the circle. \\
-Sine waves are defomed ny their frequency, amplitude and phase. We will now show that we can arbitrarily change the frequency, amplitude and phase of the constructed sine wave by changing the three parameters of the circle. By changing the radius of the circle we change the amplitude of the resulting sine wave. Figure \ref{fig:fourier_radius} shows that the radius corresponds to the amplitude of the resulting approximation. If we change the speed at which we go along the outline of the circle, we change the frequency of the resulting function. In figure \ref{fig:fourier_speed} we doubled the speed at which we go along the outline of the circle compared to \ref{fig:fourier}. This results in a sine wave with double the frequency. Also, by changing the starting position on the outline of the circle, we can change the phase of the sine wave.\\
-So far we only constructed simple sine waves. We can also construct more complex functions by using multiple circles: Instead of going along the outline of a single circle, we place a new circle on the outline of the previous circle. Each new circle moves along the outline of the previous circle. By repeating this, we can use an arbitrary number of circles. For the y-values of the resulting function, we then only use the y-values of the positions on the outline of the last circle. In figure \ref{fig:fourier_square} a square wave is approximated by using 4 circles. 
+Sine waves can be defined by a frequency, amplitude and phase. We will now show that we can arbitrarily change the frequency, amplitude and phase of the constructed sine wave by changing the three parameters of the circle. By changing the radius of the circle we change the amplitude of the constructed sine wave. Figure \ref{fig:fourier_radius} shows that the radius directly corresponds to the amplitude of the constructed sine wave. If we change the speed at which we go along the outline of the circle, we change the frequency of the resulting sine wave. In figure \ref{fig:fourier_speed} we doubled the speed at which we go along the outline of the circle compared to \ref{fig:fourier}. This results in a sine wave with double the frequency. Also, by changing the starting position on the outline of the circle, we can change the phase of the sine wave. \\
+So far we only constructed simple sine waves. We can also construct more complex functions by using multiple circles: Instead of going along the outline of a single circle, we place a new circle on the outline of the previous circle. Each new circle moves along the outline of the previous circle. By repeating this, we can use an arbitrary number of circles. For the y-values of the constructed function, we then only use the y-values of the positions on the outline of the last circle. In figure \ref{fig:fourier_square} a square wave is approximated by using 4 circles. 
 \\
-The fourier transform works by finding the values of the three parameters for each circle to optimally approximate a given one-dimensional function. In literature the circles are refered to as \textit{harmonic circles}. The fourier transform returns only two coefficients per harmonic circle, but the two coefficients can be used to compute all three parameters. In this thesis we refer to the coefficients that describe a single harmonic circle as \textit{harmonic}. 
- \\ One important property of the fourier transform is that signals can be approximated arbitrarily well by specfying the number of harmonics to use. The more harmonics are used for the approximation, the better the approximation. Many common signals can be perfectly reconstructed using the fourier transform, but some, for example the square wave that we approximated in figure \ref{fig:fourier_square}, need an infinite number of harmonics for perfect reconstruction.\\ 
+The fourier transform works by finding the values of the three parameters for each circle to optimally approximate a given one-dimensional function. In literature the circles are refered to as \textit{harmonic circles}. The fourier transform returns only two coefficients per harmonic circle, but the two coefficients can be used to compute all three parameters. In this thesis we call the set of fourier coefficients that describe a single harmonic circle a \textit{harmonic}. 
+ \\ One important property of the fourier transform is that signals can be approximated arbitrarily well by specfying the number of harmonics that are used \cite{nixon2012feature}. The more harmonics are used for the approximation, the better the approximation \cite{nixon2012feature}. Many common signals can be perfectly reconstructed using the fourier transform, but some, for example the square wave that we approximated in figure \ref{fig:fourier_square}, need an infinite number of harmonics for perfect reconstruction.\\ 
 
-\begin{figure}[h]
+\begin{figure}
 \centering
-\includegraphics[width=\textwidth]{6sin(x)/Animation_0246.jpg}
-\caption{By going along the outline of a circle it is possible to construct a sine wave.}
-\label{fig:fourier}
+	\begin{subfigure}[t]{\textwidth}
+		\centering
+		\includegraphics[width=\textwidth,clip, trim=0cm 2.5cm 0cm 3cm]{6sin(x)/Animation_0246.jpg}
+		\caption{By going along the outline of a harmonic circle it is possible to construct a sine wave.}\label{fig:fourier}		
+	\end{subfigure}
+	\begin{subfigure}[t]{\textwidth}
+		\centering
+		\includegraphics[width=\textwidth,clip, trim=0cm 2.5cm 0cm 1cm]{3sin(x)/Animation_0246.jpg}
+		\caption{Changing the radius of the harmonic circle changes the amplitude of the resulting sine wave. Compared to \ref{fig:fourier} the radius of the circle was halved and is now at three.}\label{fig:fourier_radius}		
+	\end{subfigure}
+	\begin{subfigure}[t]{\textwidth}
+		\centering
+		\includegraphics[width=\textwidth,clip, trim=0cm 2.5cm 0cm 1cm]{6sin(2x)/Animation_0344.jpg}
+		\caption{Changing the speed at which we go along the outline of the harmonic circle changes the frequency of the resulting sine wave. Compared to \ref{fig:fourier} the speed at which we go along the outline of the circle was doubled which results in a doubled frequency.}\label{fig:fourier_speed}		
+	\end{subfigure}
+	\caption{}
 \end{figure}
+ \smallskip
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{3sin(x)/Animation_0246.jpg}
-\caption{Changing the radius of the circle changes the amplitude of the resulting sine wave. Compared to \ref{fig:fourier} the radius of the circle was halved and is now at three.}
-\label{fig:fourier_radius}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{6sin(2x)/Animation_0344.jpg}
-\caption{Changing the speed at which we go along the outline of the circle changes the frequency of the resulting sine wave. Compared to \ref{fig:fourier} the speed at which we go along the outline of the circle was doubled which results in a doubled frequency.}
-\label{fig:fourier_speed}
-\end{figure}
+%\begin{figure}[h]
+%\centering
+%\includegraphics[width=\textwidth]{6sin(x)/Animation_0246.jpg}
+%\caption{By going along the outline of a circle it is possible to construct a sine wave.}
+%\label{fig:fourier}
+%\end{figure}
+%
+%\begin{figure}[h]
+%\centering
+%\includegraphics[width=\textwidth]{3sin(x)/Animation_0246.jpg}
+%\caption{Changing the radius of the circle changes the amplitude of the resulting sine wave. Compared to \ref{fig:fourier} the radius of the circle was halved and is now at three.}
+%\label{fig:fourier_radius}
+%\end{figure}
+%
+%\begin{figure}[h]
+%\centering
+%\includegraphics[width=\textwidth]{6sin(2x)/Animation_0344.jpg}
+%\caption{Changing the speed at which we go along the outline of the circle changes the frequency of the resulting sine wave. Compared to \ref{fig:fourier} the speed at which we go along the outline of the circle was doubled which results in a doubled frequency.}
+%\label{fig:fourier_speed}
+%\end{figure}
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth]{square_wave/Animation_0891.jpg}
-\caption{More complex functions can be approximated by repeating the process recursively by using circles that go along the outline of the previous circle. In this case 4 circles are used to appropximate a square wave.}
+\caption{More complex functions can be approximated by repeating the process recursively by using circles that go along the outline of the previous circle. In this figure 4 harmonic circles are used to appropximate a square wave.}
 \label{fig:fourier_square}
 \end{figure}
 
 \subsection{Discrete Fourier Transform}
-Several different versions of the fourier transform exist to handle different kinds of input signals. In practice signals usually are finite and discrete, because memory in computers is limited and cannot store an infinite amount of values. For such input signals the \textit{Discrete Fourier Transform} (DFT) can be used. The DFT is a version of the fourier transform that can handle discrete and finite signals. Note that the DFT assumes a periodic input signal \cite{dspguide}. In our implementation we apply the fourier transform on closed contours, which are periodic, discrete, and finite. This means the DFT is suited for all input signals we use in our implementation.
+Several different versions of the fourier transform exist to handle different kinds of input signals. In practice signals usually are finite and discrete, because memory in computers is limited and cannot store an infinite amount of values. For such input signals the \textit{Discrete Fourier Transform} (DFT) can be used. The DFT is a version of the fourier transform that can handle discrete and finite signals. The DFT assumes a periodic input signal \cite{dspguide}. Also, the first coefficient computed by the DFT is called \textit{DC Component}. The DC component does not describe the shape of the signal. In this thesis we apply the fourier transform on closed contours, which are represented by periodic, discrete, and finite functions. This means the DFT is suited for this kind of input signals.
 
 
 
@@ -52,12 +73,64 @@ Several different versions of the fourier transform exist to handle different ki
 %evntuell fehelrberechnung usw
 
 \section{Elliptic Fourier Descriptors}
-In this thesis we will use Elliptic Fourier Descriptors (EFDs) to represent the shape of the TL and FL. An EFD is a set of fourier coefficients, that can be used to reconstruct a shape. The fourier transform is only defined for one-dimensional signals, but it is possible to use it for an arbitrary number of dimensions by viewing each dimension as a separate signal. In this thesis the shapes of the lumen are defined in 2D, therefore we have to use the fourier transform twice, once for the x-direction and once for the y-direction. This means for a 2D shape we get 4 fourier coefficients per harmonic circle. The EFD of such a 2D shape contains those fourier coefficients. The first two coefficients describe the shape in x-direction and the other two coefficients describe the shape in y-direction. Combined they describe an ellipse, therefore the name Elliptic Fourier Descriptors. An important feature of EFDs is that the harmonic coefficients can be lineary interpolated to achieve a linear interpolation of the reconstructed signals. We will use this property to interpolate between shapes. 
+In this thesis we consider to use \textit{Elliptic Fourier Descriptors} (EFD) \cite{giardinia} to represent the 2-dimensional contour of the TL and FL. An EFD is a set of fourier coefficients, that can be used to describe a contour. To obtain the fourier coefficients we have to apply a fourier transform. Contours are usually represented by a finite amount of discrete values. Therefore, the DFT is one version of the fourier transform that we can use for this task, because it assumes a discrete and finite input signal. Since the DFT also assumes a periodic input signal \cite{dspguide}, we will have to ensure that the contours are closed contours. The fourier transform only takes one-dimensional signals as input. This means we first have to represent the contours in a one-dimensional manner before we can apply the DFT. We consider to use chain codes for this purpose, which we describe in section \ref{chain_codes}. In \cite{giardinia} the authors describe how chain codes can be used with the DFT to obtain EFDs. They first defined the following two fourier approximations that use fourier coefficients to approximate the contour in x- and y-direction respectively:
+\begin{equation} \label{eq:dft}
+\begin{split}
+ x(t) = A_0 + \sum_{n=1}^{N} a_n cos \frac{2\pi n t}{T} + b_n sin \frac{2\pi n t}{T} \\
+ y(t) = C_0 + \sum_{n=1}^{N} c_n cos \frac{2\pi n t}{T} + d_n sin \frac{2\pi n t}{T}
+\end{split}
+\end{equation}
 
-\section{Chain Encoding Schemes} 
-In this thesis we have to describe the contours of the lumen. This can be trivially done by using the pixel coordinates of the contour pixels in an ordered manner. However, there are other, often more advantageous ways to represent contours. One of them is the description of the contour by using chain codes. The Freeman Chain Encoding Scheme \cite{freeman} for example encodes the contour by using number from 0 to 7. For each pixel the number describes the direction to the next pixel relatively to the the current pixel. The numbers used for each direction are shown in figure \ref{fig:freeman}. An example is the triangle shown in figure \ref{fig:pixel_triangle} that can be described by the freeman chain code 111777444444 \\  
-One advantage is that a contour described by a freeman chain code is invariant to translations. Another advantage is that different freeman chain codes can be directly compared, as long as the same starting pixel was used. Freeman Chain Codes are not invariant to the picking of the starting pixel, but they can be normalized to be: Picking of a different starting pixel when creating the freeman chain code results in a circular shift of the chain code. To obtain a chain code that is invariant to picking of different starting pixels we can circularly shift the chain code until we find the chain code that produces the lowest possible number \cite{Ballard:1982:CV:578131}. \\  Freeman chain codes are not invariant to rotations. A way to (partially) make them invariant to rotations is to store the differences of the chain code segments instead of storing the directions from one pixel to the next. Computationally this can be done by subtracting each chain code segment from the next and taking the result modulo $n$, where $n$ is the connectivity. The freeman chain code is 8-connected, therefore we set $n = 8$. In literature such chain codes are called \textit{differential chain codes}. As an example, if we use the freeman chain code of the triangle in figure \ref{fig:pixel_triangle}, then the resulting differential chain code is 00600300000.  \\
-An different chain code encoding scheme is the vertex chain code (VCC) \cite{vertex_chain_code}. The VCC does not follow the pixels as the freeman chain code. Instead, it follows the vertices that lie on the border between the pixels and the background. This difference becomes more apparent if we consider the chain codes of a single pixel. In such a case the freeman chain code consists of 0 elements. The VCC in this case is 1111. This is because the VCC moves along the 4 edges of the pixel. Each segment of the VCC indicates the number of cell vertices, which are in touch with the bounding contour of the shape at that position. The VCC can be used for rectangular (pixels), triangle or hexagonal cells. In the following we will describe the reconstruction only for the case of rectangular cells, as that case is the only one that is relevant in this thesis. In the case of rectangular cells the element values range from 1 to 3. \\ To reconstruct the contour from a chain code several steps have to be done: First each element of the VCC is converted to a \textit{slope change} as defined by the slope change notation in \cite{slope_change_notation}. In the case of rectangular cells this specifically means that the element values 1, 2 and 3 are replaced by 0.5, 0.0, and -0.5 respectively. Then the integral of this slope change chain code is computed, which is the addition of the elements, element by element. For example consider the slope change chain code 1.0 0.5 0.0 -0.5. The first element of the integral is then 1.0. The second element is 1.5 (1.0 + 0.5). The third element is 1.5 (1.0 + 0.5 + 0.0) and the last element is 1.0 (1.0 + 0.5 + 0.0 - 0.5). The finished integral is then 1.0 1.5 1.5 1.0. Each element of the integral can be used to compute the x- and y-displacement from one vertex to the next using the equations in \ref{eq:vcc_reconstruction}. $C_{x_i}$ and $C_{y_i}$ are the displacements described by the $i$-th element in the integral in x- and y-direction respectively. $l$ is the length of one side of a cell. $c_i$ is the current element of the integral. 
+with $ A_0$ and $C_0 $ being DC Components. $N$ is the total number of harmonics to be used. $a_n$, $b_n$, $c_n$, and $d_n$ are fourier coefficients. $t$ is the elapsed time, and $T$ is the total time needed for one period.
+Then they solved the fourier approximations in \ref{eq:dft} for the DC components and fourier coefficients. Consequently, the equations \ref{eq:dft_dc} and \ref{eq:dft_coefficients} can be used to directly compute the DC components and fourier coefficients. 
+
+\begin{equation} \label{eq:dft_dc}
+\begin{split}
+ A_0 =  \frac{1}{T} \sum_{p=1}^{K} \bigg[ \frac{\Delta x_p}{2 \Delta t_p} (t_p^2 - t_{p-1}^2) + \xi_p(t_p - t_{p-1})\bigg] \\
+ C_0 =  \frac{1}{T} \sum_{p=1}^{K} \bigg[ \frac{\Delta y_p}{2 \Delta t_p} (t_p^2 - t_{p-1}^2) + \delta_p(t_p - t_{p-1})\bigg] \\
+ \xi_p =  \sum_{j=1}^{p-1} \Delta x_j - \frac{\Delta x_p}{\Delta t_p} \sum_{j=1}^{p-1}\Delta t_j \\
+ \delta_p =  \sum_{j=1}^{p-1} \Delta y_j - \frac{\Delta y_p}{\Delta t_p} \sum_{j=1}^{p-1}\Delta t_j \\
+ \delta_1 =  \xi_1 = 0
+\end{split}
+\end{equation}    
+
+
+\begin{equation} \label{eq:dft_coefficients}
+\begin{split}
+ a_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta x_p}{\Delta t_p}[cos\frac{2n\pi t_p}{T} - cos\frac{2n\pi t_{p-1}}{T}] \\
+ b_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta x_p}{\Delta t_p}[sin\frac{2n\pi t_p}{T} - sin\frac{2n\pi t_{p-1}}{T}] \\
+ c_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta y_p}{\Delta t_p}[cos\frac{2n\pi t_p}{T} - cos\frac{2n\pi t_{p-1}}{T}] \\
+ d_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta y_p}{\Delta t_p}[sin\frac{2n\pi t_p}{T} - sin\frac{2n\pi t_{p-1}}{T}]
+\end{split}
+\end{equation} 
+
+Each of the fourier approximations in \ref{eq:dft} uses two fourier coefficients per harmonic circle and one DC component. This means a single EFD consists of 4 fourier coefficients per harmonic and two DC components. The DC components correspond to the x- and y-position of the centroid of the contour and do not describe the shape of the contour. They can be ignored to achieve translation invariance of the EFDs \cite{giardinia}. It should be noted that when using chain codes as input signals, $T$ is the euclidic length of the contour and the elapsed time $t_p$ is the euclidic length from the starting pixel up to the current chain code element. $K$ is the number of chain code elements. $\Delta x_p$ and $\Delta y_p$ are the x- and y-displacement of the current chain code element compared to the last chain code element.If the Freeman Chain Code is used, the euclidic length of a element is 1 for chain code elements 0, 2, 4, and 6 and $\sqrt{2}$ for all other chain code element.  For example the freeman chain code elements that encode a movement to the right, 0, 1, and 7, have an x-displacement of 1. Chain Code elements that encode a movement to left instead have a x-displacement of -1 and all other chain code elements have an x-displacement of 0. The same principle applies for the y-displacement, but in vertical direction. \\ As we explained in section \ref{fourier_transform} each pair of the fourier coefficients can be used to describe a harmonic circle. Combined, all 4 fourier coefficients can also be used to describe an ellipse \cite{lin1987new,giardinia}, therefore the name elliptic fourier descriptor. The specific relationships of the positions and orientations of these ellipses determine the contour that will be produced by the EFD \cite{lin1987new}. \\
+The current standard method used to model vascular structures is to approximate the contours of the lumen by circles or ellipses \cite{wu2011segmentation}. We assume that EFDs can be used as a better representation of the lumen shape than the standard method: In the case one harmonic is used for the contour reconstruction, the contours are approximated by ellipses just like in the standard method. However, EFDs offer the opportunity to use more harmonics to obtain a better approximation of the lumen shape. In literature EFDs are not well studied for the representation of vascular structures, but there are a few works that indiciate that EFDs might be well suited for that purpose. In \cite{jeong2007reslicing} EFDs are used to interpolate between different contours of organs for the purpose of reslicing. According to the authors, EFDs are suited to represent organs that have blob-like contours. Since vascular structures are usually modeled by circles or ellipses, which are blob-like, we assume that lumen contours are also blob-like. Furthermore, the authors of \cite{sato2017new} showed that EFDs can be used to compute useful measures to predict aortic enlargment of uncomplicated type B ADs. \\      
+EFDs also have several promising features that are useful for comparison, rendering or prediction: First, EFDs can be normalized with respect to translation \cite{giardinia}, size \cite{giardinia}, and rotation \cite{lin1987new, giardinia}. This can be useful for cases in which we want to compare the shape of different lumen. In the context of ADs for example, it can be useful to compare FL shapes obtained at different timepoints. Another interesting feature is that EFDs can be interpolated to achieve an interpolation of the reconstructed contour \cite{jeong2007reslicing}. This feature could be used to interpolate between lumen shapes, to model the temporal development of ADs, or for prediction by extrapolation.  Yet another feature that we can take advantage of is that contours can be smoothed by using a low number of harmonics for reconstruction. When rendering vascular structures the surfaces are usually smoothed to remove distracting artifacts and obtain a surface that is pleasing to the human eye. When using EFDs for lumen shape representation we might not need to explicitely smooth the surface, because we directly obtain a smooth surface. 
+An example of using EFDs to approximate a complex contour is given in figure \ref{fig:efd_approx}. In the figure we approximated a contour using EFDs with 1,3, 8 and 20 harmonics. The figure shows that the approximation gets better the more harmonics are used and that the reconstructed contour is smoother than the original contour.
+\todo[inline]{TODO: Add disadvantages of using EFDs}
+
+\begin{figure}
+	\begin{subfigure}[t]{\textwidth}
+		\includegraphics[width=\textwidth,clip, trim=3cm 0cm 0cm 0cm]{efds_1_3.png}		
+	\end{subfigure}
+	\begin{subfigure}[t]{\textwidth}
+		\includegraphics[width=\textwidth,clip, trim=3cm 0cm 0cm 0cm]{efds_8_20.png}		
+	\end{subfigure}
+	\caption{Approximation of the contour of a cat defined by the freeman chain code 5412343001010007711075454506541344446 using EFDs with 1 Harmonics, 3 Harmonics, 8 Harmonics, and 20 Harmonics. Compared to the original contour, the reconstructed contour is relatively smooth.}
+\label{fig:efd_approx}
+\end{figure}
+
+
+\section{Chain Codes} \label{chain_codes}
+A contour can be trivially described by the set of it's pixels. However, there are other, often more advantageous, representations for contours. Chain codes are one of those representations. Chain codes represent a contour by encoding the relative position of one pixel in the contour to the next pixel. By storing the relative positions instead of the absolute pixel   
+
+\subsection{Freeman Chain Code}
+A Freeman Chain Code \cite{freeman} consists of numbers that range from 0 to 3 in the case the contour is 4-connected. In the case a contour is 8-connected numbers that range from 0 to 7 are used. For each pixel the number describes the direction from the current pixel to the next pixel. The numbers used for each direction are shown in figure \ref{fig:freeman}. An example of a freeman chain code is shown in figure \ref{fig:pixel_triangle}, where we computed the freeman chain code 111777444444 which describes a triangle. \\  
+There are several advantages to storing freeman chain codes instead of absolute pixel positions. One of those advantages is that freeman chain codes do not require as much memory as absolute pixel positions. After all, for an 8-connected contour we only need to store 3 bits for each element of the freeman chain code \cite{Ballard:1982:CV:578131}, because each element can only range from 0 to 7. For a 4-connected contour we only need to store 2 bits for each chain code element \cite{Ballard:1982:CV:578131}. Another advantage is that a contour described by a freeman chain code is invariant to translations \cite{yang2008su}. Additionally, different freeman chain codes can be compared, as long as the same starting pixel was used. Freeman Chain Codes are not invariant to the picking of the starting pixel \cite{Ballard:1982:CV:578131}, but they can be normalized to be: Picking of a different starting pixel when creating the freeman chain code results in a circular shift of the chain code. To obtain a chain code that is invariant to picking of different starting pixels we can circularly shift the chain code until we find the chain code that produces the lowest possible number \cite{Ballard:1982:CV:578131}. \\  Freeman chain codes are not invariant to rotations \cite{yang2008su,Ballard:1982:CV:578131}. A way to (partially) make them invariant to rotations is to store the differences of the chain code elements instead of storing the directions from one pixel to the next. Computationally, this can be done by subtracting each chain code element from the next and taking the result modulo $n$, where $n$ is the connectivity \cite{yang2008su}. In literature such chain codes are called \textit{differential chain codes} (DCC). If we use freeman chain codes to create DCCs, the DCCs are only invariant to rotations of multiples of 90\si{\degree} \cite{yang2008su}. As an example of a DCC we use the freeman chain code of the triangle in figure \ref{fig:pixel_triangle}. The resulting DCC is 006003000003.\\
+
+\subsection{Vertex Chain Code}
+An different chain code encoding scheme is the vertex chain code (VCC) \cite{vertex_chain_code}. The VCC does not follow the pixels as the freeman chain code does. Instead, it follows the vertices that lie on the border between the pixels and the background. This difference becomes more apparent if we consider the chain codes of a single pixel. In such a case the freeman chain code consists of 0 elements. The VCC in this case is 1111. This is because the VCC moves along the 4 edges of the pixel. Each element of the VCC indicates the number of cell vertices, which are in touch with the bounding contour of the shape at that position. The VCC can be used for rectangular (pixels), triangle or hexagonal cells. In the following we will describe the reconstruction only for the case of rectangular cells, as that is the only case that is relevant in this thesis. In the case of rectangular cells, the element values range from 1 to 3. \\ To reconstruct the contour described by a VCC several steps have to be done: First each element of the VCC is converted to a \textit{slope change} as defined by the slope change notation in \cite{slope_change_notation}. In the case of rectangular cells this means that the element values 1, 2 and 3 are replaced by 0.5, 0.0, and -0.5 respectively. Then the integral of this slope change chain code is computed, which is the addition of the elements, element by element. For example consider the slope change chain code 1.0 0.5 0.0 -0.5. The first element of the integral is then 1.0. The second element is 1.5 (1.0 + 0.5). The third element is 1.5 (1.0 + 0.5 + 0.0) and the last element is 1.0 (1.0 + 0.5 + 0.0 - 0.5). The finished integral is then 1.0 1.5 1.5 1.0. Each element of the integral can be used to compute the x- and y-displacement from one vertex to the next using the equations in \ref{eq:vcc_reconstruction}. $C_{x_i}$ and $C_{y_i}$ are the displacements described by the $i$-th element in the integral in x- and y-direction respectively. $l$ is the length of one side of a cell. $c_i$ is the current element of the integral. 
 
 \begin{equation} \label{eq:vcc_reconstruction}
 \begin{split} 
@@ -76,7 +149,7 @@ C_{y_i} = l  sin(\pi c_i) \\
 \begin{figure}[h]
 \centering
 \includegraphics[width=\textwidth/2]{pixel_triangle.png}
-\caption{A triangle composed of pixels on a grid. The red pixel is the startng pixel. A possible freeman chain code of this triangle is then 111777444444. The differential chain code of this freeman chain code is 00600300000.}
+\caption{A triangle composed of pixels on a grid. The red pixel is the startng pixel. A possible freeman chain code of this triangle is then 111777444444. The differential chain code of this freeman chain code is 006003000003.}
 \label{fig:pixel_triangle}
 \end{figure}
 

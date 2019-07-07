@@ -3,12 +3,26 @@
 
 \chapter{Methodology}\label{chap:basics}
 
-In this chapter we describe how the provided MRI Volume Data with the masked Aortic Dissections are used in this thesis. In the first step we go along the centerlines of the lumen using a fixed step size to obtain the cross-sections at each position. Then, we extract the contours of the TL and FL from the cross-sections. In the third step we convert the found contours into chain codes. We then apply the fourier transform on the chain codes to obtain EFDs. We then use the EFDs to approximate the lumen shapes and correct overlapping contours that might occur. The result can then be used for visualization, rendering, interpolation etc.. We also add a vessel wall around the result for rendering. An overview of this pipeline is shown in figure \ref{bla}. We demonstrate all methods on a phantom data set thoughout this chapter. 
+In this chapter we describe in detail how each step of our proposed pipeline is realized. In the first step of the pipeline we obtain cross-sections by going along the centerlines in the volume data. Then, we extract the contours of the TL and FL from the obtained cross-sections. In the third step of the pipeline we represent the extracted contours using chain codes. We then apply a fourier transform on the chain codes to obtain EFDs. In the fifth step we then use the EFDs to approximate the lumen shapes and correct the overlapping contours that might occur. The result is then be used for visualization, rendering, and interpolation. We also add a vessel wall around the recontructed and corrected contours. An overview of this pipeline is shown in figure \ref{fig:pipeline}. We demonstrate all methods on a phantom data set thoughout this chapter. 
 
 \section{Obtaining Cross-Sections}
-In this step of the pipeline we describe how cross-sections are obtained from the provided volume data.The provided data contains three centerlines, the centerline of the FL, the centerline of the TL , and the TCL. The TCL interpolates points that lie between the centerlines of the TL and FL. All centerlines are modeled by interpolating B-Splines. To obtain cross-sections, we go along the splines using a fixed step size and compute the local coordinate system at each position we visit on the spline. The step size is computed by dividing the length of the spline by the number of cross-section, which is a parameter the user can provide.
+In this step of the pipeline we describe how cross-sections are obtained from the provided volume data. Each dataset of the provided data contains three centerlines, the centerline of the FL, the centerline of the TL , and the TCL. The TCL interpolates points that lie between the centerlines of the TL and FL. All centerlines are modeled by interpolating B-Splines. To obtain cross-sections, we go along the splines using a fixed step size and compute a local coordinate system at each position that we visit on the spline. The step size is computed by dividing the length of the spline by the number of cross-sections, which is a parameter the user can specify. This ensures that each lumen is represented by the same amount of cross-sections. Each local coordinate system consist of two 3-dimensional vectors, which are orthogonal to the centerline at the centerline position they were obtained. The two vectors define the x- and y-axis of the cross-section in the 3-dimensional space of the volume data. Starting from the centerline position we sample the volume in the directions of the positive and negative x- and y-axes of the cross-section. By doing this we obtain the positions of the cross-section pixels in the 3-dimensional space of the volume data. The positive and negative x- and y-axes are used because we want the centerline position to be in the center of the cross-section. The obtained 3-dimensional positions have subpixel precision and are truncated to their next integer, which is the position of a voxel in the volume. The final intensity of a pixel in the cross-section is then obtained by trilinear interpolation of the non-zero values of this voxel and the 7 neighboring voxels that form a volume cell.
 By default the cross-sections are obtained from the TCL, but the user can also choose to use the centerlines of the TL and FL instead. \\
-The difference of those options is that when we use the TCL, we obtain only one set of cross-sections that can be used for both lumen in all other steps in the pipeline. The set of cross-sections then also contains exactly as many cross-sections as chosen by the user. When using the centerlines of the FL and TL instead, we obtain two different sets of cross-sections and each of the sets contains as many cross-sections as the set of cross-sections obtained by using the TCL. Another difference is that when we use the TCL to obtain cross-section we only have one fixed step size that is used while going along the spline. When we use the centerlines of the FL and TL instead, we have two different fixed step sizes, because the step size depends on the length of the respective centerline.
+
+A problem of obtaining cross-sections is that lumen can appear distorted in the cross-section when the cross-section is not orientated orthogonal to the centerline. When using the TCL, all cross-sections are orthogonal to the TCL, but they are not necessarily orthogonal to the centerlines of the FL and TL. Therefore both lumen may appear distorted. In the cross-sections obtained by using the FL centerline, the TL may appear distorted. 
+In the cross-sections obtained by using the TL centerline, the FL may appear distorted. This means that 
+\subsection{Problems when obtaining cross-sections}
+There are several problems that can occur when cross-sections are obtained. In this section we want to give an overview of those problems. 
+
+\textbf{Overlapping Cross-sections} 
+
+Overlapping cross-sections can occur at positions the centerline has high curvature. Overlapping cross-sections can be problematic, because some rendering algorithmns for example marching cubes work by connect points from consequtive cross-section to create the lumen surface. However, when cross-sections overlap inner structures within the surface occur. If such surfaces are used to simulate the flow of blood within the lumen, the result is influenced by the inner structures, therefore such surfaces cannot be used for such applications.
+
+\textbf{Distortion of lumen} 
+
+Lumen can appear distorted within the cross-sections. Each cross-section is oriented orthogonal to the centerline that was used to obtain them. However, they are not oriented orthogonal to other centerlines. If a cross-section is not oriented orthogonal to the centerline of a lumen, the lumen appears stretched in the cross-section, because the diameter of the lumen in direction of the cross-section is larger than in the direction orthogonal to the centerline of the lumen. This is illustrated in figure \ref{fig:cross-section_distortion}. This means that when we use the TCL to obtain cross-sections, the cross-sections are not oriented orthogonal to the centerlines of the FL and TL and both lumen may appear stretched. If we use the TL centerline, the cross-sections are not orthogonal to the FL centerline and the FL may appear stretched. If we use the FL centerline, the cross-sections are not orthogonal to the TL and the TL may appear stretched.  
+
+The difference of those options is that when we use the TCL, we obtain only one set of cross-sections that can be used for both lumen in all other steps in the pipeline. The set of cross-sections then also contains exactly as many cross-sections as chosen by the user. When using the centerlines of the FL and TL instead, we obtain two different sets of cross-sections and each of the sets contains as many cross-sections as the set of cross-sections obtained by using the TCL. Another difference is that when we use the TCL to obtain cross-section we only have one fixed step size that is used while going along the spline. When we use the centerlines of the FL and TL instead, we have two different step sizes, because the step size depends on the length of the respective centerline.
 
 These differences make it complicated to use the cross-sections obtained from the centerlines of the FL and TL in some steps of the pipeline. For example in the step of the pipeline in which we correct the overlapping of the reconstructed contours we have to identify both lumen in each cross-section. In the case the cross-sections were obtained by using centerlines of the FL and TL, we can either ignore the parameter that controls the number of cross-sections to be used and process all cross-sections, or we have to decide which cross-sections to use.
 
@@ -37,57 +51,11 @@ After we extracted the contours of the cross-sections we convert them to chain c
 \section{Computing Elliptic Fourier Descriptors}
 In this step we have to compute the EFDs that will be used to represent the shapes of the lumen. As the EFDs are a set of fourier coefficients, we have to use the Discrete Fourier Transform on the chain codes we obtained in the last step of the pipeline. More specifically, we use the DFT defined in \cite{giardinia}. The Fourier approximation for the 2D case is then defined as:
 
-\begin{equation} \label{eq:dft_x}
- x(t) = A_0 + \sum_{n=1}^{N} a_n cos \frac{2\pi n t}{T} + b_n sin \frac{2\pi n t}{T}
-\end{equation}
-
-
-\begin{equation} \label{eq:dft_y}
- y(t) = C_0 + \sum_{n=1}^{N} c_n cos \frac{2\pi n t}{T} + d_n sin \frac{2\pi n t}{T}
-\end{equation}
  
-with $ A_0$ and $C_0 $ being the DC Components. $N$ is the total number of harmonics to be used, which can be freely changed by the user. $a_n$, $b_n$, $c_n$, and $d_n$ are fourier coefficients. $t$ is the elapsed time, and $T$ is the total time needed for one period. \\ In our implementation we use this definition of the Fourier Approximation to reconstruct the contour in a gapless manner, if it is necessary to do so. However, for most steps of our pipeline and for many rendering applications it is sufficient to reconstruct the signal using less reconstruction points. The main advantages of using less reconstruction points is the reduced memory consumption and faster processing due to the lower number of points that need to be processed. For this purpose we also implemented another fourier approximation that is very similar to the one defined in \ref{eq:dft_x} and \ref{eq:dft_y}. The only differences are that we set $t$ to be the index of the current reconstruction point and $T$ to be the total number of reconstruction points that should be used. This changes cause the reconstructed points to be placed equidistantly on the reconstructed contour and allow the user to freely adjust the total number of reconstruction points.\\ 
+In our implementation we use this definition of the Fourier Approximation to reconstruct the contour in a gapless manner, if it is necessary to do so. However, for most steps of our pipeline and for many rendering applications it is sufficient to reconstruct the signal using less reconstruction points. The main advantages of using less reconstruction points is the reduced memory consumption and faster processing due to the lower number of points that need to be processed. For this purpose we also implemented another fourier approximation that is very similar to the one defined in \ref{eq:dft_x} and \ref{eq:dft_y}. The only differences are that we set $t$ to be the index of the current reconstruction point and $T$ to be the total number of reconstruction points that should be used. This changes cause the reconstructed points to be placed equidistantly on the reconstructed contour and allow the user to freely adjust the total number of reconstruction points.\\ 
 
-The DC Components $A_0$ and $C_0$ correspond to the x- and y-coordinate of the centroid of the input signals and are defined as: 
-
-\begin{equation} \label{eq:dft_dc_x}
- A_0 =  \frac{1}{T} \sum_{p=1}^{K} \bigg[ \frac{\Delta x_p}{2 \Delta t_p} (t_p^2 - t_{p-1}^2) + \xi_p(t_p - t_{p-1})\bigg]
-\end{equation}  
-
-\begin{equation} \label{eq:dft_dc_y}
- C_0 =  \frac{1}{T} \sum_{p=1}^{K} \bigg[ \frac{\Delta y_p}{2 \Delta t_p} (t_p^2 - t_{p-1}^2) + \delta_p(t_p - t_{p-1})\bigg]
-\end{equation}   
-with
-
-\begin{equation} \label{eq:dft_xi}
- \xi_p =  \sum_{j=1}^{p-1} \Delta x_j - \frac{\Delta x_p}{\Delta t_p} \sum_{j=1}^{p-1}\Delta t_j
-\end{equation}  
-
-\begin{equation} \label{eq:dft_delta}
- \delta_p =  \sum_{j=1}^{p-1} \Delta y_j - \frac{\Delta y_p}{\Delta t_p} \sum_{j=1}^{p-1}\Delta t_j
-\end{equation}  
  
-\begin{equation} \label{eq:dft_delta_first}
- \delta_1 =  \xi_1 = 0
-\end{equation} 
- 
-We directly compute the 4 fourier coefficients of the $n$-th harmonic using the following equations:
 
-\begin{equation} \label{eq:dft_a_n}
- a_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta x_p}{\Delta t_p}[cos\frac{2n\pi t_p}{T} - cos\frac{2n\pi t_{p-1}}{T}]
-\end{equation} 
-
-\begin{equation} \label{eq:dft_b_n}
- b_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta x_p}{\Delta t_p}[sin\frac{2n\pi t_p}{T} - sin\frac{2n\pi t_{p-1}}{T}]
-\end{equation}
- 
-\begin{equation} \label{eq:dft_c_n}
- c_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta y_p}{\Delta t_p}[cos\frac{2n\pi t_p}{T} - cos\frac{2n\pi t_{p-1}}{T}]
-\end{equation} 
-
-\begin{equation} \label{eq:dft_d_n}
- d_n = \frac{T}{2n^2\pi^2} \sum_{p=1}^{K}\frac{\Delta y_p}{\Delta t_p}[sin\frac{2n\pi t_p}{T} - sin\frac{2n\pi t_{p-1}}{T}]
-\end{equation}
 
 It should be noted that when using chain codes as input signals, $T$ is the euclidic length of the contour and the elapsed time $t_p$ is the euclidic length from the starting pixel up to the current chain code segment. If the Freeman Chain Code is used, the euclidic length of a segment is 1 for chain code segments 0, 2, 4, and 6 and $\sqrt{2}$ for all other chain code segments. $K$ is the number of chain code segments. $\Delta x_p$ and $\Delta y_p$ are the x- and y-displacement of the current chain code segment compared to the last chain code segment. For example the Freeman chain code segments that encode a movement to the right, 0, 1, and 7, have an x-displacement of 1. Chain Code segments that encode a movement to left instead have a x-displacement of -1 and all other chain code segments have an x-displacement of 0. The same principle applies for the y-displacement, but in vertical direction.
 
