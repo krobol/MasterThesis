@@ -5,17 +5,51 @@
 
 In this chapter we describe in detail how each step of our proposed pipeline is realized. In the first step of the pipeline we obtain cross-sections by going along the centerlines in the volume data. Then, we extract the contours of the TL and FL from the obtained cross-sections. In the third step of the pipeline we represent the extracted contours using chain codes. We then apply a fourier transform on the chain codes to obtain EFDs. In the fifth step we then use the EFDs to approximate the lumen shapes and correct the overlapping contours that might occur. The result is then be used for visualization, rendering, and interpolation. We also add a vessel wall around the recontructed and corrected contours. An overview of this pipeline is shown in figure \ref{fig:pipeline}. We demonstrate all methods on a phantom data set thoughout this chapter. 
 
-\section{Obtaining Cross-Sections}
-In this step of the pipeline we describe how cross-sections are obtained from the provided volume data. Each dataset of the provided data contains three centerlines, the centerline of the FL, the centerline of the TL , and the TCL. The TCL interpolates points that lie between the centerlines of the TL and FL. All centerlines are modeled by interpolating B-Splines. To obtain cross-sections, we go along the splines using a fixed step size and compute a local coordinate system at each position that we visit on the spline. The step size is computed by dividing the length of the spline by the number of cross-sections, which is a parameter the user can specify. This ensures that each lumen is represented by the same amount of cross-sections. Each local coordinate system consist of two 3-dimensional vectors, which are orthogonal to the centerline at the centerline position they were obtained. The two vectors define the x- and y-axis of the cross-section in the 3-dimensional space of the volume data. Starting from the centerline position we sample the volume in the directions of the positive and negative x- and y-axes of the cross-section. By doing this we obtain the positions of the cross-section pixels in the 3-dimensional space of the volume data. The positive and negative x- and y-axes are used because we want the centerline position to be in the center of the cross-section. The obtained 3-dimensional positions have subpixel precision and are truncated to their integer, which corresponds to the the position of a voxel in the volume. The final intensity of a pixel in the cross-section is then obtained by trilinear interpolation of the non-zero values of this voxel and the 7 neighboring voxels that form a volume cell. \\
-By default we use the TCL to otain cross-sections, but the user can also choose to use the centerlines of the TL and FL instead. We chose the TCL as default, because the obtained cross-sections are easier to use in the other steps of the pipeline.
+\begin{center}
+\begin{tikzpicture}[node distance = 3cm, auto] \label{fig:pipeline}
 
+    % Place nodes
+    \node [block] (init) {Obtain cross-sections};
+    \node [cloud, left of=init] (expert) {expert};
+    \node [block, below of=init] (contours) {Extract contours};
+    \node [block, below of=contours] (chaincode) {Convert contours to chain codes};
+    \node [block, below of=chaincode] (efds) {Compute EFDs};
+    \node [decision, below of=efds, node distance=4cm] (decide) {Cross-sections obtained with TCL ?};
+    \node [block, below of=decide, node distance=4cm] (overlap) {Correct overlapping contours};
+	\node [block, below of=overlap] (vesselwall) {Create vessel wall};
+	\node [block, below of=vesselwall] (use) {Use EFDs for rendering etc.};
+    % Draw edges
+    \path [line] (init) -- (contours);
+    \path [line] (contours) -- (chaincode);
+    \path [line] (chaincode) -- (efds);
+	\path [line] (efds) -- (decide);
+	\path [line] (overlap) -- (vesselwall);
+	\path [line] (vesselwall) -- (use);
+    %\path [line] (decide) -- node {no} (use);
+    \path [line] (decide) -- node {yes}(overlap);
+    %\path [line,dashed] (expert) -- (init);
+\end{tikzpicture}
+\end{center}
+
+
+\section{Obtaining Cross-Sections}
+In this step of the pipeline we describe how cross-sections are obtained from the provided volume data. Each dataset of the provided data contains three centerlines, the centerline of the FL, the centerline of the TL , and the TCL. The TCL interpolates points that lie between the centerlines of the TL and FL. All centerlines are modeled by interpolating B-Splines. To obtain cross-sections, we go along a centerline using a fixed step size and compute a local coordinate frame at each position that we visit on the centerline. The step size is computed by dividing the length of the centerline by the number of desired cross-sections, which is a parameter the user can specify. This ensures that each lumen is represented by the same amount of cross-sections. Each local coordinate frame consist of two 3-dimensional vectors, which are orthogonal to the centerline at the centerline position they were obtained. The two vectors define the x- and y-axis of the cross-section in the 3-dimensional space of the volume data. Starting from the centerline position we sample the volume in the directions of the positive and negative x- and y-axes of the cross-section. By doing this we obtain the positions of the cross-section pixels in the 3-dimensional space of the volume data. The positive and negative x- and y-axes are used because we want the centerline to be in the center of the cross-section. The obtained 3-dimensional positions have floating point precision and are truncated to their integer, which corresponds to the the position of a voxel in the volume. The final intensity of a pixel in the cross-section is then obtained by trilinear interpolation of the non-zero values of this voxel and the 7 neighboring voxels that form a volume cell. An example of the obtained cross-sections is shown in figure \ref{fig:obliqueslices}\\
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{obliqueslices.PNG}
+\caption{The three centerlines of our phantom dataset. The TL centerline, TCL, and FL centerline are colored red, green, and blue respectively. A cross-section is shown for each centerline. The cross-sections are orthogonal to their corresponding centerline, but not necessarily to other centerlines. That is why the cross-section of the TL and TCL look different, even though the same offset was used. The cross-section of the FL uses a different offset, because the FL centerline is shorter than the other centerlines in the dataset.}
+\label{fig:obliqueslices}
+\end{figure} 
+
+By default we use the TCL to obtain cross-sections, but the user can also choose to use the centerlines of the TL and FL instead. We chose the TCL as default, because the obtained cross-sections are easier to use in the other steps of the pipeline.
 In the following we describe problems that can occur when obtaining cross-sections and how we solved or avoided them. 
 
 \subsection{Problems when obtaining cross-sections}
 
 \textbf{Overlapping Cross-sections} 
 
-Overlapping cross-sections can occur at positions the centerline has high curvature. They can be problematic, because some rendering algorithmns for example marching cubes work by connecting points from consequtive cross-section to create the lumen surface. However, when cross-sections overlap, inner structures within the surface occur. These inner structures make the surface useless for severeal appplications. When simulating the flow of blood within the lumen for example, the result is influenced by the inner structures. Therefore, only surfaces without inner structures should be used. A possible solution was proposed by th authors of \cite{wu2010curvature}. They propose to use an adaptive step size that depends on the gaussian curvature of the centerline to bi-directionally down-sample the centerline, before obtaining cross-sections. This ensures that cross-sections are far apart in regions of high curvature \\
+Overlapping cross-sections can occur at positions the centerline has high curvature. They can be problematic, because some surface rendering algorithmns for example marching cubes work by connecting points from consecutive cross-sections. However, when cross-sections overlap, inner structures within the surface occur. These inner structures make the surface useless for severeal appplications. When simulating the flow of blood within the lumen for example, the result is influenced by the inner structures. Therefore, only surfaces without inner structures are desired. A possible solution was proposed by the authors of \cite{wu2010curvature}. They propose to use an adaptive step size that depends on the gaussian curvature of the centerline to bi-directionally down-sample the centerline, before obtaining cross-sections. This ensures that cross-sections are far apart in regions of high curvature. \\
 We avoided this problem by not storing the correspondence of contour pixels to their cross-section. This means the extracted contours are interpreted as a point cloud. We assume that a point cloud is sufficient to create a smooth surface without inner structures.  
 
 \textbf{Distortion of lumen} 
