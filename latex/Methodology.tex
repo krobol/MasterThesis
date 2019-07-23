@@ -78,8 +78,12 @@ The centerline of the TL is usually longer than the centerline of the FL. This m
 \end{figure} 
 
 \section{Extracting Lumen Contours}
-\todo[inline]{We currently use the Moore-Neighborhood-Tracing algorithm, which has problems in specific cases. the result will probably not change visibly, but change the implementation to use \cite{seo2016fast} instead before writing this part.}
-Both lumen are masked in our data, so we can identify pixels belonging to the lumen when traversing the cross-sections. In some cases there are several disconnected components for each lumen as shown in figure \ref{bla}.That is why we first iterate over each cross-section to find the largest connected component, which will be used  in all further steps. We use a modified version of the Moore-Neighborhood-Tracing algorithm to follow the contour. The only difference is that we do not backtrack, but instead go right of the current relative direction. Unfortunaly, the The algorithm still has all advantages and disadvantage sof the original Moore-Neighborhood-Tracing algorithm. An example of the extracted contours can be seen in figure \ref{fig:extracted_contours}.
+Cross-sections might migth intersect the same lumen at positions with high curvature as shown in figure \ref{}. This results in the appearence of the same lumen at several positions in the cross-sections. Therefore, before extracting the contour we first have determine the largest connected area of each lumen in the cross-section. We do this by iterating over the pixels until we find a pixel that belongs to a lumen. Since the data is segmentated, we can trivially identify such pixels. \\   
+
+We use the contour tracing algorithm that we described in \ref{contourtracingalgorithm} to extract the lumen contours from the cross-sections. To select a starting pixel we iterate over the pixels from left to right, top to down until we find a contour pixel. By doing it this way we satisfiy the condition of the contour tracing algorithmn that the rear-left pixel relative to the starting pixel is not an inner-outer-corner pixel.
+\todo[inline]{TODO: conditions in relative work} 
+The result of applying the contour tracing algorithm is an ordered list of contour pixel positions and their classifications.
+An example of the extracted contours can be seen in figure \ref{fig:extracted_contours}.
 
 \section{Converting Contour to Chain Code}
 After we extracted the contours of the cross-sections we convert them to chain codes. This is mainly done to represent the contour as a one-dimensional signal, so that we can apply the fourier transform. The Encoding Scheme we use is the Freeman Chain Encoding Scheme that we describe in section \ref{freeman}. The chain codes are only stored temporarily, so we do not need to normalize them in any way.

@@ -66,7 +66,87 @@ The fourier transform works by finding the values of the three parameters for ea
 \subsection{Discrete Fourier Transform}
 Several different versions of the fourier transform exist to handle different kinds of input signals. In practice signals usually are finite and discrete, because memory in computers is limited and cannot store an infinite amount of values. For such input signals the \textit{Discrete Fourier Transform} (DFT) can be used. The DFT is a version of the fourier transform that can handle discrete and finite signals. The DFT assumes a periodic input signal \cite{dspguide}. Also, the first coefficient computed by the DFT is called \textit{DC Component}. The DC component does not describe the shape of the signal. In this thesis we apply the fourier transform on closed contours, which are represented by periodic, discrete, and finite functions. This means the DFT is suited for this kind of input signals.
 
+\section{Contour-Tracing Algorithm} \label{contourtracingalgorithm}
+A contour-tracing algorithmn can be used to extract the boundary of objects in an image. The boundary of an object is called it's contour. An overview of different approaches to contour tracing algorithmns is given in \cite{seo2016fast}. The authors also propose a new contour-tracing algorithmn that we use in this thesis. Therefore, in this section we focus on describing this particular contour-tracing algorithmn.
 
+The proposed algorithm is a pixel-following method. This means that it starts at a given pixel and tries to find the next contour pixel by checking the pixels in the neighborhood. The order in which the neighborhood pixels are checked is defined by simple rules. \\ The algorithmn keeps track of an absolute direction, which can be \textit{north}, \textit{east}, \textit{south}, or \textit{west}. The pixels that are checked are defined relative to this direction. For example if the direction is \textit{east}, then the pixel to the \textit{left} of this pixel would be the pixel above this pixel. Depending on the position of the next contour pixel relative to this direction, the direction is updated throughout the algorithm in a relative manner by rotating it by 90 degrees counter-clockwise, or clockwise, or by flipping the direction.\\  
+The algorithm works in two phases. These two phases are repeated until the current pixel is the starting pixel and the direction is the same as at the start of the algorithmn. In the first phase the algorithm only checks the left and rear-left pixels. In the second phase, it only checks the front and front-left pixels. This means only pixels in the front, rear or left of the current direction are ever checked. However, if none of the checked pixels is a contour pixel, the direction is flipped, which means that the pixels that were not checked in this iteration because they are on the right side of the current pixel will be on the left side in the next iteration. By checking the local neighborhood the algorithm can differrentiate between all cases shown in figure \ref{fig:contour_phase}. The figure also shows for each case how the pixels are traced and what the respective direction at each contour pixel is.  \\ \\
+The main reason why we chose this particular contour-tracing algorithm mainly because it does not have the problems of other traditional contour-tracing algorithms. In the paper of this algorithm, the authors analyzed traditional contour-tracing algorithms and found problems for each of them such as missed contour pixels, premature termination, or repeated tracing of the same pixels due to problems with defining a stopping criterion. \\
+Another reason for choosing this algorithm is it's ability to classify contour pixels. We might be able to use this feature for the vertex chain code, which differentiates between straight contour elements, outer-corner, and  inner-corner vertices.
+
+\begin{figure}
+\begin{tikzpicture}
+	\newcommand{\figcontourwidth}{3.5}
+	\newcommand{\figcontourfirstOffset}{0}
+	\newcommand{\figcontousecondOffset}{4.5}
+	\newcommand{\figcontouthirdOffset}{9}
+	\newcommand{\figcontoufourthOffset}{13.5}
+	\newcommand{\figcontousecondRowYOffset}{4.5}			
+	
+	\draw (\figcontourfirstOffset,0) -- (\figcontourfirstOffset + \figcontourwidth,0);
+	\draw (\figcontourfirstOffset,\figcontourwidth) -- (\figcontourfirstOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontourfirstOffset,0) -- (\figcontourfirstOffset, \figcontourwidth);
+	\draw (\figcontourfirstOffset + \figcontourwidth,0) -- (\figcontourfirstOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontourfirstOffset + \figcontourwidth/2,0) -- (\figcontourfirstOffset + \figcontourwidth/2,\figcontourwidth);
+	\draw (\figcontourfirstOffset,\figcontourwidth/2) -- (\figcontourfirstOffset + \figcontourwidth,\figcontourwidth/2);
+
+	\draw (\figcontousecondOffset,0) -- (\figcontousecondOffset + \figcontourwidth,0);
+	\draw (\figcontousecondOffset,\figcontourwidth) -- (\figcontousecondOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontousecondOffset,0) -- (\figcontousecondOffset, \figcontourwidth);
+	\draw (\figcontousecondOffset + \figcontourwidth,0) -- (\figcontousecondOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontousecondOffset + \figcontourwidth/2,0) -- (\figcontousecondOffset + \figcontourwidth/2,\figcontourwidth);
+	\draw (\figcontousecondOffset,\figcontourwidth/2) -- (\figcontousecondOffset + \figcontourwidth,\figcontourwidth/2);
+
+	\draw (\figcontouthirdOffset,0) -- (\figcontouthirdOffset + \figcontourwidth,0);
+	\draw (\figcontouthirdOffset,\figcontourwidth) -- (\figcontouthirdOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontouthirdOffset,0) -- (\figcontouthirdOffset, \figcontourwidth);
+	\draw (\figcontouthirdOffset + \figcontourwidth,0) -- (\figcontouthirdOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontouthirdOffset + \figcontourwidth/2,0) -- (\figcontouthirdOffset + \figcontourwidth/2,\figcontourwidth);
+	\draw (\figcontouthirdOffset,\figcontourwidth/2) -- (\figcontouthirdOffset + \figcontourwidth,\figcontourwidth/2);
+
+	\draw (\figcontoufourthOffset,0) -- (\figcontoufourthOffset + \figcontourwidth,0);
+	\draw (\figcontoufourthOffset,\figcontourwidth) -- (\figcontoufourthOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontoufourthOffset,0) -- (\figcontoufourthOffset, \figcontourwidth);
+	\draw (\figcontoufourthOffset + \figcontourwidth,0) -- (\figcontoufourthOffset + \figcontourwidth,\figcontourwidth);
+	\draw (\figcontoufourthOffset + \figcontourwidth/2,0) -- (\figcontoufourthOffset + \figcontourwidth/2,\figcontourwidth);
+	\draw (\figcontoufourthOffset,\figcontourwidth/2) -- (\figcontoufourthOffset + \figcontourwidth,\figcontourwidth/2);
+	
+%second row
+
+	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset);
+	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset) -- (\figcontourfirstOffset, \figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontourfirstOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontourfirstOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
+
+	\draw (\figcontousecondOffset,\figcontousecondRowYOffset) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset);
+	\draw (\figcontousecondOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontousecondOffset,\figcontousecondRowYOffset) -- (\figcontousecondOffset,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontousecondOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontousecondOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontousecondOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
+
+	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset);
+	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset) -- (\figcontouthirdOffset, \figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontouthirdOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontouthirdOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
+
+	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset);
+	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset) -- (\figcontoufourthOffset,\figcontousecondRowYOffset +  \figcontourwidth);
+	\draw (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontoufourthOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontoufourthOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
+	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
+	
+
+\end{tikzpicture}
+
+\caption{Different cases that the contour-tracing algorithm proposed in \cite{seo2016fast} can differentiate. The first row of this figure shows all cases that can be found in the first phase of the algorithm. The second row shows the cases that can be found in in the second phase of the algorithmn. The black pixels are contour pixels, while the white pixels are not. The green dot indicates the start position of the algorithmn for each case. The non-dashed arrows indicate the direction at each pixel position.}
+ \label{fig:contour_phase}
+\end{figure}
 
 %Formel und erklärung was sie macht \\
 %Visualisierung \\
