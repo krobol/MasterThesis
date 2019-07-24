@@ -65,87 +65,200 @@ The fourier transform works by finding the values of the three parameters for ea
 
 \subsection{Discrete Fourier Transform}
 Several different versions of the fourier transform exist to handle different kinds of input signals. In practice signals usually are finite and discrete, because memory in computers is limited and cannot store an infinite amount of values. For such input signals the \textit{Discrete Fourier Transform} (DFT) can be used. The DFT is a version of the fourier transform that can handle discrete and finite signals. The DFT assumes a periodic input signal \cite{dspguide}. Also, the first coefficient computed by the DFT is called \textit{DC Component}. The DC component does not describe the shape of the signal. In this thesis we apply the fourier transform on closed contours, which are represented by periodic, discrete, and finite functions. This means the DFT is suited for this kind of input signals.
+\newpage
 
 \section{Contour-Tracing Algorithm} \label{contourtracingalgorithm}
-A contour-tracing algorithmn can be used to extract the boundary of objects in an image. The boundary of an object is called it's contour. An overview of different approaches to contour tracing algorithmns is given in \cite{seo2016fast}. The authors also propose a new contour-tracing algorithmn that we use in this thesis. Therefore, in this section we focus on describing this particular contour-tracing algorithmn.
+A contour-tracing algorithmn can be used to extract the boundary of objects in an image. The boundary of an object is called it's contour. An overview of different approaches to contour tracing algorithmns is given in \cite{seo2016fast}. The authors also propose a new contour-tracing algorithmn that we use in this thesis. Therefore, in this section we focus on describing this particular contour-tracing algorithm.
 
-The proposed algorithm is a pixel-following method. This means that it starts at a given pixel and tries to find the next contour pixel by checking the pixels in the neighborhood. The order in which the neighborhood pixels are checked is defined by simple rules. \\ The algorithmn keeps track of an absolute direction, which can be \textit{north}, \textit{east}, \textit{south}, or \textit{west}. The pixels that are checked are defined relative to this direction. For example if the direction is \textit{east}, then the pixel to the \textit{left} of this pixel would be the pixel above this pixel. Depending on the position of the next contour pixel relative to this direction, the direction is updated throughout the algorithm in a relative manner by rotating it by 90 degrees counter-clockwise, or clockwise, or by flipping the direction.\\  
-The algorithm works in two phases. These two phases are repeated until the current pixel is the starting pixel and the direction is the same as at the start of the algorithmn. In the first phase the algorithm only checks the left and rear-left pixels. In the second phase, it only checks the front and front-left pixels. This means only pixels in the front, rear or left of the current direction are ever checked. However, if none of the checked pixels is a contour pixel, the direction is flipped, which means that the pixels that were not checked in this iteration because they are on the right side of the current pixel will be on the left side in the next iteration. By checking the local neighborhood the algorithm can differrentiate between all cases shown in figure \ref{fig:contour_phase}. The figure also shows for each case how the pixels are traced and what the respective direction at each contour pixel is.  \\ \\
-The main reason why we chose this particular contour-tracing algorithm mainly because it does not have the problems of other traditional contour-tracing algorithms. In the paper of this algorithm, the authors analyzed traditional contour-tracing algorithms and found problems for each of them such as missed contour pixels, premature termination, or repeated tracing of the same pixels due to problems with defining a stopping criterion. \\
-Another reason for choosing this algorithm is it's ability to classify contour pixels. We might be able to use this feature for the vertex chain code, which differentiates between straight contour elements, outer-corner, and  inner-corner vertices.
+The proposed algorithm is a pixel-following method. This means that it starts at a given pixel and tries to find the next contour pixel by checking the pixels in the local neighborhood. The order in which the neighborhood pixels are checked is defined by simple rules. \\ The algorithm keeps track of the current pixel position it is on and of an absolute direction. In the context of contour-tracing algorithms, this set of the current pixel position and a direction is called a \textit{Tracer}. 
 
-\begin{figure}
+\textbf{Direction of the Tracer}
+
+The absolute direction of the tracer of this algorithm can be \textit{north}, \textit{east}, \textit{south}, or \textit{west}. The pixels that are checked are defined relative to this absolute direction. For example, if the direction is \textit{east}, then the pixel to the \textit{left} of the current pixel is the pixel above the current pixel. Depending on the position of the next contour pixel relative to the absolute direction, the absolute direction is updated throughout the algorithm by rotating it by 90 degrees counter-clockwise, or clockwise, or by flipping the direction. Figure \ref{fig:contour_tracing} shows how the direction is changed in all specific cases the algorithm can differentiate.
+
+\newpage
+\textbf{Tracing}
+
+For initilization of the algorithm, the user has to first provide a starting pixel position, which has to fullfill the following two conditions:  
+\begin{enumerate}
+\item{The starting pixel is a contour pixel.}
+\item{The rear pixel relative to the starting pixel is not a contour pixel.}
+\end{enumerate}
+  
+After initilization the algorithm works in two phases. These two phases are repeated until the current pixel is the starting pixel and the direction is the same as at the start of the algorithm. In the first phase the algorithm only checks the left and rear-left pixels. In the second phase, it only checks the front and front-left pixels. Figure \ref{fig:contour_tracing} shows all cases that can occur in both phases. The first row of the figure shows all cases that can occur in the first phase, while the second row shows all cases that can occur in the second phase of the algorithm. The figure also shows for each case in which order the pixels are traced and what the respective direction at each contour pixel is. \\
+It should be noticed that only pixels in the front, rear or left of the current direction are ever checked. However, if none of the checked pixels is a contour pixel, the direction is flipped (see figure \ref{contourTracingH}), which means that the pixels that were not checked in this iteration, because they are on the right side of the current pixel, will be on the left side in the next iteration.  \\ \\
+The main reason why we chose this particular contour-tracing algorithm is because it does not have the problems of other traditional contour-tracing algorithms. In the paper of this algorithm, the authors analyzed traditional contour-tracing algorithms and found problems for each of them such as missed contour pixels, premature termination, or repeated tracing of the same pixels due to problems with defining a stopping criterion. \\
+Another reason for choosing this algorithm is it's ability to classify contour pixels. Figure \ref{fig:contour_tracing} shows the cases in which a pixel can be classified as an \textit{inner}, \textit{inner-outer}, \textit{straight line} or \textit{outer} contour pixel. We think we can take advantage of this ability to classify pixels for example to create the vertex chain code which also differentiates between straight contour elements, outer-corner, and  inner-corner vertices.
+
+\usetikzlibrary{arrows.meta}
+\newcommand{\figcontourwidth}{3.5}
+\newcommand{\figcontourfirstOffset}{0}
+\newcommand{\figcontousecondOffset}{4.5}
+\newcommand{\figcontouthirdOffset}{9}
+\newcommand{\figcontoufourthOffset}{13.5}
+\newcommand{\figcontousecondRowYOffset}{4.5}	
+
+\newcommand\ContourPhaseOneCaseOne{
 \begin{tikzpicture}
-	\newcommand{\figcontourwidth}{3.5}
-	\newcommand{\figcontourfirstOffset}{0}
-	\newcommand{\figcontousecondOffset}{4.5}
-	\newcommand{\figcontouthirdOffset}{9}
-	\newcommand{\figcontoufourthOffset}{13.5}
-	\newcommand{\figcontousecondRowYOffset}{4.5}			
+%phase 1 case 1
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontourfirstOffset,0) rectangle (\figcontourfirstOffset + \figcontourwidth/2, \figcontourwidth/2); %rear-left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontourfirstOffset, \figcontourwidth/2) rectangle (\figcontourfirstOffset + \figcontourwidth/2, \figcontourwidth); % left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontourfirstOffset + \figcontourwidth/2, \figcontourwidth/2) rectangle (\figcontourfirstOffset + \figcontourwidth, \figcontourwidth); % current pixel
+	\draw [draw=black, very thick] (\figcontourfirstOffset + \figcontourwidth/2,0) rectangle (\figcontourfirstOffset + \figcontourwidth, \figcontourwidth/2); % rear pixel
 	
-	\draw (\figcontourfirstOffset,0) -- (\figcontourfirstOffset + \figcontourwidth,0);
-	\draw (\figcontourfirstOffset,\figcontourwidth) -- (\figcontourfirstOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontourfirstOffset,0) -- (\figcontourfirstOffset, \figcontourwidth);
-	\draw (\figcontourfirstOffset + \figcontourwidth,0) -- (\figcontourfirstOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontourfirstOffset + \figcontourwidth/2,0) -- (\figcontourfirstOffset + \figcontourwidth/2,\figcontourwidth);
-	\draw (\figcontourfirstOffset,\figcontourwidth/2) -- (\figcontourfirstOffset + \figcontourwidth,\figcontourwidth/2);
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontourfirstOffset + \figcontourwidth/2 + \figcontourwidth/4, \figcontourwidth/2 + \figcontourwidth/12) -- (\figcontourfirstOffset + \figcontourwidth - \figcontourwidth/4, \figcontourwidth - \figcontourwidth/16);
+\draw[draw=black, line width=3.0pt, -Latex](\figcontourfirstOffset + \figcontourwidth/2 - \figcontourwidth/12,  \figcontourwidth/2 + \figcontourwidth/4) -- (\figcontourfirstOffset + \figcontourwidth/16, \figcontourwidth/2 + \figcontourwidth/4);
+\draw[draw=black, line width=3.0pt, -Latex] (\figcontourfirstOffset + \figcontourwidth/2 - \figcontourwidth/4, \figcontourwidth/2 - \figcontourwidth/12) -- (\figcontourfirstOffset + \figcontourwidth/4,0 + \figcontourwidth/16);
 
-	\draw (\figcontousecondOffset,0) -- (\figcontousecondOffset + \figcontourwidth,0);
-	\draw (\figcontousecondOffset,\figcontourwidth) -- (\figcontousecondOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontousecondOffset,0) -- (\figcontousecondOffset, \figcontourwidth);
-	\draw (\figcontousecondOffset + \figcontourwidth,0) -- (\figcontousecondOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontousecondOffset + \figcontourwidth/2,0) -- (\figcontousecondOffset + \figcontourwidth/2,\figcontourwidth);
-	\draw (\figcontousecondOffset,\figcontourwidth/2) -- (\figcontousecondOffset + \figcontourwidth,\figcontourwidth/2);
+%dashed
+\draw[draw=black, line width=1.5pt, dashed] (\figcontourfirstOffset + \figcontourwidth - \figcontourwidth/4, \figcontourwidth - \figcontourwidth/16) -- (\figcontourfirstOffset + \figcontourwidth/2 - \figcontourwidth/12,  \figcontourwidth/2 + \figcontourwidth/4);
+\draw[draw=black, line width=1.5pt, dashed] (\figcontourfirstOffset + \figcontourwidth/16, \figcontourwidth/2 + \figcontourwidth/4) -- (\figcontourfirstOffset + \figcontourwidth/2 - \figcontourwidth/4, \figcontourwidth/2 - \figcontourwidth/12);
+\end{tikzpicture}
+}
+\newcommand\ContourPhaseOneCaseTwo{
+\begin{tikzpicture}
+%phase 1 case 2
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontousecondOffset,0) rectangle (\figcontousecondOffset + \figcontourwidth/2, \figcontourwidth/2); %rear-left pixel
+	\filldraw [fill=white, draw=black, very thick] (\figcontousecondOffset, \figcontourwidth/2) rectangle (\figcontousecondOffset + \figcontourwidth/2, \figcontourwidth); % left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontousecondOffset + \figcontourwidth/2, \figcontourwidth/2) rectangle (\figcontousecondOffset + \figcontourwidth, \figcontourwidth); % current pixel
+	\draw [draw=black, very thick] (\figcontousecondOffset + \figcontourwidth/2,0) rectangle (\figcontousecondOffset + \figcontourwidth, \figcontourwidth/2); % rear pixel
 
-	\draw (\figcontouthirdOffset,0) -- (\figcontouthirdOffset + \figcontourwidth,0);
-	\draw (\figcontouthirdOffset,\figcontourwidth) -- (\figcontouthirdOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontouthirdOffset,0) -- (\figcontouthirdOffset, \figcontourwidth);
-	\draw (\figcontouthirdOffset + \figcontourwidth,0) -- (\figcontouthirdOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontouthirdOffset + \figcontourwidth/2,0) -- (\figcontouthirdOffset + \figcontourwidth/2,\figcontourwidth);
-	\draw (\figcontouthirdOffset,\figcontourwidth/2) -- (\figcontouthirdOffset + \figcontourwidth,\figcontourwidth/2);
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontousecondOffset + \figcontourwidth/2 + \figcontourwidth/4, \figcontourwidth/2 + \figcontourwidth/12) -- (\figcontousecondOffset + \figcontourwidth - \figcontourwidth/4, \figcontourwidth - \figcontourwidth/16);
+\draw[draw=black, line width=3.0pt, -Latex] (\figcontousecondOffset + \figcontourwidth/2 - \figcontourwidth/4, \figcontourwidth/2 - \figcontourwidth/12) -- (\figcontousecondOffset + \figcontourwidth/4,0 + \figcontourwidth/16);
 
-	\draw (\figcontoufourthOffset,0) -- (\figcontoufourthOffset + \figcontourwidth,0);
-	\draw (\figcontoufourthOffset,\figcontourwidth) -- (\figcontoufourthOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontoufourthOffset,0) -- (\figcontoufourthOffset, \figcontourwidth);
-	\draw (\figcontoufourthOffset + \figcontourwidth,0) -- (\figcontoufourthOffset + \figcontourwidth,\figcontourwidth);
-	\draw (\figcontoufourthOffset + \figcontourwidth/2,0) -- (\figcontoufourthOffset + \figcontourwidth/2,\figcontourwidth);
-	\draw (\figcontoufourthOffset,\figcontourwidth/2) -- (\figcontoufourthOffset + \figcontourwidth,\figcontourwidth/2);
-	
-%second row
-
-	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset);
-	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset) -- (\figcontourfirstOffset, \figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontourfirstOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontourfirstOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontourfirstOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontourfirstOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
-
-	\draw (\figcontousecondOffset,\figcontousecondRowYOffset) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset);
-	\draw (\figcontousecondOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontousecondOffset,\figcontousecondRowYOffset) -- (\figcontousecondOffset,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontousecondOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontousecondOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontousecondOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontousecondOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
-
-	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset);
-	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset) -- (\figcontouthirdOffset, \figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontouthirdOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontouthirdOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontouthirdOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontouthirdOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
-
-	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset);
-	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset + \figcontourwidth) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset) -- (\figcontoufourthOffset,\figcontousecondRowYOffset +  \figcontourwidth);
-	\draw (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontoufourthOffset + \figcontourwidth/2,\figcontousecondRowYOffset) -- (\figcontoufourthOffset + \figcontourwidth/2,\figcontousecondRowYOffset + \figcontourwidth);
-	\draw (\figcontoufourthOffset,\figcontousecondRowYOffset + \figcontourwidth/2) -- (\figcontoufourthOffset + \figcontourwidth,\figcontousecondRowYOffset + \figcontourwidth/2);
-	
+%dashed
+\draw[draw=black, line width=1.5pt, dashed] (\figcontousecondOffset + \figcontourwidth - \figcontourwidth/4, \figcontourwidth - \figcontourwidth/16) -- (\figcontousecondOffset + \figcontourwidth/2 - \figcontourwidth/4, \figcontourwidth/2 - \figcontourwidth/12);
 
 \end{tikzpicture}
+}
 
-\caption{Different cases that the contour-tracing algorithm proposed in \cite{seo2016fast} can differentiate. The first row of this figure shows all cases that can be found in the first phase of the algorithm. The second row shows the cases that can be found in in the second phase of the algorithmn. The black pixels are contour pixels, while the white pixels are not. The green dot indicates the start position of the algorithmn for each case. The non-dashed arrows indicate the direction at each pixel position.}
- \label{fig:contour_phase}
+\newcommand\ContourPhaseOneCaseThree{
+\begin{tikzpicture}
+%phase 1 case 3
+	\filldraw [fill=white, draw=black, very thick] (\figcontouthirdOffset,0) rectangle (\figcontouthirdOffset + \figcontourwidth/2, \figcontourwidth/2); %rear-left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontouthirdOffset, \figcontourwidth/2) rectangle (\figcontouthirdOffset + \figcontourwidth/2, \figcontourwidth); % left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontouthirdOffset + \figcontourwidth/2, \figcontourwidth/2) rectangle (\figcontouthirdOffset + \figcontourwidth, \figcontourwidth); % current pixel
+	\draw [draw=black, very thick] (\figcontouthirdOffset + \figcontourwidth/2,0) rectangle (\figcontouthirdOffset + \figcontourwidth, \figcontourwidth/2); % rear pixel
+
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontouthirdOffset + \figcontourwidth/2 + \figcontourwidth/4, \figcontourwidth/2 + \figcontourwidth/12) -- (\figcontouthirdOffset + \figcontourwidth - \figcontourwidth/4, \figcontourwidth - \figcontourwidth/16);
+\draw[draw=black, line width=3.0pt, -Latex](\figcontouthirdOffset + \figcontourwidth/2 - \figcontourwidth/12,  \figcontourwidth/2 + \figcontourwidth/4) -- (\figcontouthirdOffset + \figcontourwidth/16, \figcontourwidth/2 + \figcontourwidth/4);
+
+%dashed
+\draw[draw=black, line width=1.5pt, dashed] (\figcontouthirdOffset + \figcontourwidth - \figcontourwidth/4, \figcontourwidth - \figcontourwidth/16) -- (\figcontouthirdOffset + \figcontourwidth/2 - \figcontourwidth/12,  \figcontourwidth/2 + \figcontourwidth/4);
+
+\end{tikzpicture}
+}
+
+\newcommand\ContourPhaseOneCaseFour{
+\begin{tikzpicture}
+%phase 1 case 4
+	\filldraw [fill=white, draw=black, very thick] (\figcontoufourthOffset,0) rectangle (\figcontoufourthOffset + \figcontourwidth/2, \figcontourwidth/2); %rear-left pixel
+	\filldraw [fill=white, draw=black, very thick] (\figcontoufourthOffset, \figcontourwidth/2) rectangle (\figcontoufourthOffset + \figcontourwidth/2, \figcontourwidth); % left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontoufourthOffset + \figcontourwidth/2, \figcontourwidth/2) rectangle (\figcontoufourthOffset + \figcontourwidth, \figcontourwidth); % current pixel
+	\draw [draw=black, very thick] (\figcontoufourthOffset + \figcontourwidth/2,0) rectangle (\figcontoufourthOffset + \figcontourwidth, \figcontourwidth/2); % rear pixel
+
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontoufourthOffset + \figcontourwidth/2 + \figcontourwidth/4, \figcontourwidth/2 + \figcontourwidth/12) -- (\figcontoufourthOffset + \figcontourwidth - \figcontourwidth/4, \figcontourwidth - \figcontourwidth/16);
+\end{tikzpicture}
+}
+
+\newcommand\ContourPhaseTwoCaseOne{
+\begin{tikzpicture}
+%phase 2 case 1
+	\filldraw [fill=white, draw=black, very thick] (\figcontourfirstOffset,0+\figcontousecondRowYOffset) rectangle (\figcontourfirstOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset); %rear-left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontourfirstOffset, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontourfirstOffset + \figcontourwidth/2, \figcontourwidth+\figcontousecondRowYOffset); % left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontourfirstOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontourfirstOffset + \figcontourwidth, \figcontourwidth+\figcontousecondRowYOffset); % current pixel
+	\filldraw [fill=gray!50,draw=black, very thick] (\figcontourfirstOffset + \figcontourwidth/2,0+\figcontousecondRowYOffset) rectangle (\figcontourfirstOffset + \figcontourwidth, \figcontourwidth/2+\figcontousecondRowYOffset); % rear pixel
+
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontourfirstOffset + \figcontourwidth/2 +  \figcontourwidth/4,0+\figcontousecondRowYOffset +  \figcontourwidth/12) -- (\figcontourfirstOffset + \figcontourwidth -  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16);
+\draw[draw=black, line width=3.0pt, -Latex]  (\figcontourfirstOffset + \figcontourwidth - \figcontourwidth/12, \figcontourwidth+\figcontousecondRowYOffset - \figcontourwidth/4) --  (\figcontourfirstOffset + \figcontourwidth/2 + \figcontourwidth/16, \figcontourwidth/2+\figcontousecondRowYOffset +\figcontourwidth/4);
+\draw[draw=black, line width=3.0pt, -Latex]  (\figcontourfirstOffset+  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset+  \figcontourwidth/12) --  (\figcontourfirstOffset + \figcontourwidth/2-  \figcontourwidth/4, \figcontourwidth+\figcontousecondRowYOffset- \figcontourwidth/16);
+
+%dashed
+\draw[draw=black, line width=1.5pt, dashed] (\figcontourfirstOffset + \figcontourwidth -  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16) -- (\figcontourfirstOffset + \figcontourwidth - \figcontourwidth/12, \figcontourwidth+\figcontousecondRowYOffset - \figcontourwidth/4);
+\draw[draw=black, line width=1.5pt, dashed] (\figcontourfirstOffset + \figcontourwidth/2 + \figcontourwidth/16, \figcontourwidth/2+\figcontousecondRowYOffset +\figcontourwidth/4) -- (\figcontourfirstOffset+  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset+  \figcontourwidth/12);
+\end{tikzpicture}
+}
+
+\newcommand\ContourPhaseTwoCaseTwo{
+\begin{tikzpicture}
+%phase 2 case 2
+	\filldraw [fill=white, draw=black, very thick] (\figcontousecondOffset,0+\figcontousecondRowYOffset) rectangle (\figcontousecondOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset); %rear-left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontousecondOffset, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontousecondOffset + \figcontourwidth/2, \figcontourwidth+\figcontousecondRowYOffset); % left pixel
+	\filldraw [fill=white, draw=black, very thick] (\figcontousecondOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontousecondOffset + \figcontourwidth, \figcontourwidth+\figcontousecondRowYOffset); % current pixel
+	\filldraw [fill=gray!50,draw=black, very thick] (\figcontousecondOffset + \figcontourwidth/2,0+\figcontousecondRowYOffset) rectangle (\figcontousecondOffset + \figcontourwidth, \figcontourwidth/2+\figcontousecondRowYOffset); % rear pixel
+
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontousecondOffset + \figcontourwidth/2 +  \figcontourwidth/4,0+\figcontousecondRowYOffset +  \figcontourwidth/12) -- (\figcontousecondOffset + \figcontourwidth -  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16);
+\draw[draw=black, line width=3.0pt, -Latex]  (\figcontousecondOffset+  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset+  \figcontourwidth/12) --  (\figcontousecondOffset + \figcontourwidth/2-  \figcontourwidth/4, \figcontourwidth+\figcontousecondRowYOffset- \figcontourwidth/16);
+
+%dashed
+\draw[draw=black, line width=1.5pt, dashed] (\figcontousecondOffset + \figcontourwidth -  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16) -- (\figcontousecondOffset+  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset+  \figcontourwidth/12);
+\end{tikzpicture}
+}
+
+\newcommand\ContourPhaseTwoCaseThree{
+\begin{tikzpicture}
+%phase 2 case 3
+	\filldraw [fill=white, draw=black, very thick] (\figcontouthirdOffset,0+\figcontousecondRowYOffset) rectangle (\figcontouthirdOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset); %rear-left pixel
+	\filldraw [fill=white, draw=black, very thick] (\figcontouthirdOffset, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontouthirdOffset + \figcontourwidth/2, \figcontourwidth+\figcontousecondRowYOffset); % left pixel
+	\filldraw [fill=gray!50, draw=black, very thick] (\figcontouthirdOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontouthirdOffset + \figcontourwidth, \figcontourwidth+\figcontousecondRowYOffset); % current pixel
+	\filldraw [fill=gray!50,draw=black, very thick] (\figcontouthirdOffset + \figcontourwidth/2,0+\figcontousecondRowYOffset) rectangle (\figcontouthirdOffset + \figcontourwidth, \figcontourwidth/2+\figcontousecondRowYOffset); % rear pixel
+
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontouthirdOffset + \figcontourwidth/2 +  \figcontourwidth/4,0+\figcontousecondRowYOffset +  \figcontourwidth/12) -- (\figcontouthirdOffset + \figcontourwidth -  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16);
+\draw[draw=black, line width=3.0pt, -Latex] (\figcontouthirdOffset + \figcontourwidth/2 + \figcontourwidth/16, \figcontourwidth/2+\figcontousecondRowYOffset +\figcontourwidth/4) --  (\figcontouthirdOffset + \figcontourwidth - \figcontourwidth/12, \figcontourwidth+\figcontousecondRowYOffset - \figcontourwidth/4);
+
+%dashed
+\draw[draw=black, line width=1.5pt, dashed] (\figcontouthirdOffset + \figcontourwidth -  \figcontourwidth/4, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16) -- (\figcontouthirdOffset + \figcontourwidth/2 + \figcontourwidth/16, \figcontourwidth/2+\figcontousecondRowYOffset +\figcontourwidth/4);
+\end{tikzpicture}
+}
+
+\newcommand\ContourPhaseTwoCaseFour{
+\begin{tikzpicture}
+%phase 2 case 4
+	\filldraw [fill=white, draw=black, very thick] (\figcontoufourthOffset,0+\figcontousecondRowYOffset) rectangle (\figcontoufourthOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset); %rear-left pixel
+	\filldraw [fill=white, draw=black, very thick] (\figcontoufourthOffset, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontoufourthOffset + \figcontourwidth/2, \figcontourwidth+\figcontousecondRowYOffset); % left pixel
+	\filldraw [fill=white, draw=black, very thick] (\figcontoufourthOffset + \figcontourwidth/2, \figcontourwidth/2+\figcontousecondRowYOffset) rectangle (\figcontoufourthOffset + \figcontourwidth, \figcontourwidth+\figcontousecondRowYOffset); % current pixel
+	\filldraw [fill=gray!50,draw=black, very thick] (\figcontoufourthOffset + \figcontourwidth/2,0+\figcontousecondRowYOffset) rectangle (\figcontoufourthOffset + \figcontourwidth, \figcontourwidth/2+\figcontousecondRowYOffset); % rear pixel
+
+%arrows
+	\draw[draw=black, line width=3.0pt, {*[fill=darkgreen!60]}-Latex] (\figcontoufourthOffset + \figcontourwidth/2 +  \figcontourwidth/8,0+\figcontousecondRowYOffset +  \figcontourwidth/12) -- (\figcontoufourthOffset + \figcontourwidth -  \figcontourwidth/4 - \figcontourwidth/8, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16);
+\draw[draw=black, line width=3.0pt, -Latex] (\figcontoufourthOffset + \figcontourwidth -  \figcontourwidth/8, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16) -- (\figcontoufourthOffset + \figcontourwidth/2 +  \figcontourwidth/8 + \figcontourwidth/4,0+\figcontousecondRowYOffset +  \figcontourwidth/16);
+
+
+%dashed
+\draw[draw=black, line width=1.5pt, dashed] (\figcontoufourthOffset + \figcontourwidth -  \figcontourwidth/4 - \figcontourwidth/8, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16) -- (\figcontoufourthOffset + \figcontourwidth -  \figcontourwidth/8, \figcontourwidth/2+\figcontousecondRowYOffset - \figcontourwidth/16);
+\end{tikzpicture}
+}
+
+\begin{figure}
+\begin{minipage}{0.2\textwidth}
+\begin{tikzpicture}[font=\small]
+\node[draw,inner sep=0pt] (a){\ContourPhaseOneCaseOne};
+\node[draw,inner sep=0pt, right of=a, node distance=4cm] (b){\ContourPhaseOneCaseTwo};
+\node[draw,inner sep=0pt, right of=b, node distance=4cm] (c){\ContourPhaseOneCaseThree};
+\node[draw,inner sep=0pt, right of=c, node distance=4cm] (d){\ContourPhaseOneCaseFour};
+\node[draw,inner sep=0pt, below of=a, node distance=5cm] (e){\ContourPhaseTwoCaseOne};
+\node[draw,inner sep=0pt, right of=e, node distance=4cm] (f){\ContourPhaseTwoCaseTwo};
+\node[draw,inner sep=0pt, right of=f, node distance=4cm] (g){\ContourPhaseTwoCaseThree};
+\node[draw,inner sep=0pt, right of=g, node distance=4cm] (h){\ContourPhaseTwoCaseFour};
+\node [below= 1ex of a.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Inner\label{contourTracingA}}}};
+\node [below= 1ex of b.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Inner-outer\label{contourTracingB}}}};
+\node [below= 1ex of c.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Straight line\label{contourTracingC}}}};
+\node [below= 1ex of d.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Outer\label{contourTracingD}}}};
+\node [below= 1ex of e.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Inner\label{contourTracingE}}}};
+\node [below= 1ex of f.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Inner-outer\label{contourTracingF}}}};
+\node [below= 1ex of g.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Straight line\label{contourTracingG}}}};
+\node [below= 1ex of h.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Outer\label{contourTracingH}}}};
+\end{tikzpicture}
+\end{minipage}
+\caption{Different cases that the contour-tracing algorithm proposed in \cite{seo2016fast} can differentiate. The first row of this figure shows all cases that can be found in the first phase of the algorithm. The second row shows the cases that can be found in in the second phase of the algorithm. The grey pixels are contour pixels, while the white pixels are not. The green dot indicates the start position of the algorithm for each case. The non-dashed arrows indicate the direction at each pixel position.}
+ \label{fig:contour_tracing}
 \end{figure}
 
 %Formel und erklärung was sie macht \\
