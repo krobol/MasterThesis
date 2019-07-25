@@ -33,14 +33,28 @@ In this chapter we describe in detail how each step of our proposed pipeline is 
 
 
 \section{Obtaining Cross-Sections}
-In this step of the pipeline we describe how cross-sections are obtained from the provided volume data. Each dataset of the provided data contains three centerlines, the centerline of the FL, the centerline of the TL , and the TCL. The TCL interpolates points that lie between the centerlines of the TL and FL. All centerlines are modeled by interpolating B-Splines. To obtain cross-sections, we go along a centerline using a fixed step size and compute a local coordinate frame at each position that we visit on the centerline. The step size is computed by dividing the length of the centerline by the number of desired cross-sections, which is a parameter the user can specify. This ensures that each lumen is represented by the same amount of cross-sections. Each local coordinate frame consist of two 3-dimensional vectors, which are orthogonal to the centerline at the centerline position they were obtained. The two vectors define the x- and y-axis of the cross-section in the 3-dimensional space of the volume data. Starting from the centerline position we sample the volume in the directions of the positive and negative x- and y-axes of the cross-section. By doing this we obtain the positions of the cross-section pixels in the 3-dimensional space of the volume data. The positive and negative x- and y-axes are used because we want the centerline to be in the center of the cross-section. The obtained 3-dimensional positions have floating point precision and are truncated to their integer, which corresponds to the the position of a voxel in the volume. The final intensity of a pixel in the cross-section is then obtained by trilinear interpolation of the non-zero values of this voxel and the 7 neighboring voxels that form a volume cell. An example of the obtained cross-sections is shown in figure \ref{fig:obliqueslices}\\
+In this step of the pipeline we describe how cross-sections are obtained from the provided volume data. Each dataset of the provided data contains three centerlines, the centerline of the FL, the centerline of the TL , and the TCL. The TCL interpolates points that lie between the centerlines of the TL and FL. All centerlines are modeled by interpolating B-Splines. To obtain cross-sections, we go along a centerline using a fixed step size and compute a local coordinate frame at each position that we visit on the centerline. The step size is computed by dividing the length of the centerline by the number of desired cross-sections, which is a parameter the user can specify. This ensures that each lumen is represented by the same amount of cross-sections. Each local coordinate frame consist of two 3-dimensional vectors, which are orthogonal to the centerline at the centerline position they were obtained. The two vectors define the x- and y-axis of the cross-section in the 3-dimensional space of the volume data. Starting from the centerline position we sample the volume in the directions of the positive and negative x- and y-axes of the cross-section. By doing this we obtain the positions of the cross-section pixels in the 3-dimensional space of the volume data. The positive and negative x- and y-axes are used because we want the centerline to be in the center of the cross-section. The obtained 3-dimensional positions have floating point precision and are truncated to their integer, which corresponds to the the position of a voxel in the volume. The final intensity of a pixel in the cross-section is then obtained by trilinear interpolation of the non-zero values of this voxel and the 7 neighboring voxels that form a volume cell. \\ A screenshot of the centerlines of our phantom data set is shown in figure \ref{fig:obliqueslices}. The figure also shows a cross-section obtained from each centerline using the same offset. Even though the same offset was used, all three cross-sections are different. The cross-section from the TL centerline and TCL in the figure are oriented differently and it can be seen that the cross-section from the TL is not orthogonal to the TCL and the other way around. The cross-section from the FL centerline was obtained using the same offset as the other cross-sections, but is on a completely different position in the volume. This is because the FL centerline is shorter than the other centerlines in the volume, which results in a smaller step size when going along the centerline. \\
 
-\begin{figure}[h]
+\begin{figure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{obliqueslices_tl_615.PNG}
+	\caption{}		
+	\end{subfigure}
+\hspace{0.05\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{obliqueslices_tcl_615.PNG}		
+\caption{}	
+	\end{subfigure}
 \centering
-\includegraphics[width=\textwidth]{obliqueslices.PNG}
-\caption{The three centerlines of our phantom dataset. The TL centerline, TCL, and FL centerline are colored red, green, and blue respectively. A cross-section is shown for each centerline. The cross-sections are orthogonal to their corresponding centerline, but not necessarily to other centerlines. That is why the cross-section of the TL and TCL look different, even though the same offset was used. The cross-section of the FL uses a different offset, because the FL centerline is shorter than the other centerlines in the dataset.}
+\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{obliqueslices_fl_615.PNG}		
+\caption{}	
+	\end{subfigure}
+	\caption{The three centerlines of our phantom dataset. The TL centerline, TCL, and FL centerline are colored red, green, and blue respectively. A cross-section is shown for each centerline. The cross-sections are orthogonal to their corresponding centerline, but not necessarily to other centerlines. That is why the cross-section of the TL and TCL look slightly different, even though the same offset was used. The cross-section of the FL also uses the same offset, but because the FL centerline is shorter than the TL centerline and the TCL, the cross-section apppears on a completly different position.}
 \label{fig:obliqueslices}
-\end{figure} 
+\end{figure}
+
+
 
 By default we use the TCL to obtain cross-sections, but the user can also choose to use the centerlines of the TL and FL instead. We chose the TCL as default, because the obtained cross-sections are easier to use in the other steps of the pipeline.
 In the following we describe problems that can occur when obtaining cross-sections and how we solved or avoided them. 
@@ -65,36 +79,98 @@ The centerline of the TL is usually longer than the centerline of the FL. This m
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth/2]{cross-section249.png}
+\includegraphics[width=\textwidth/2]{slice_760.PNG}
 \caption{A cross-section of the phantom data set. In the center both lumen are visible. The TL is the almost perfect circular lumen with brighter intensity values than the FL. The FL is the non-circular lumen that winds arounds the TL.}
 \label{fig:cross-section}
 \end{figure}  
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=\textwidth/2]{cross-section249_with_extracted_contours.png}
-\caption{The same cross-section as in \ref{fig:cross-section} after extracting the lumen contours. In the center both lumen are visible and their respective contours overlayed. The contour of the FL is colored blue, while the contour of the TL is colored red. Compared to \ref{fig:cross-section} the windowing function was adjusted for better visibility of the contours.}
+\includegraphics[width=\textwidth/2]{slice_760_extractedContours.PNG}
+\caption{The same cross-section as in figure \ref{fig:cross-section} after extracting the lumen contours. In the center both lumen are visible and their respective contours overlayed. The contour of the FL is colored blue, while the contour of the TL is colored red. Compared to \ref{fig:cross-section} the windowing function was adjusted for better visibility of the contours.}
 \label{fig:extracted_contours}
 \end{figure} 
 
 \section{Extracting Lumen Contours}
-Cross-sections might migth intersect the same lumen at positions with high curvature as shown in figure \ref{}. This results in the appearence of the same lumen at several positions in the cross-sections. Therefore, before extracting the contour we first have determine the largest connected area of each lumen in the cross-section. We do this by iterating over the pixels until we find a pixel that belongs to a lumen. Since the data is segmentated, we can trivially identify such pixels. \\   
+Cross-sections might intersect the same lumen at positions with high curvature as shown in figure \ref{}. This results in the appearence of the same lumen at several positions in the cross-sections. This is why, before extracting the contour, we first determine the largest connected area of each lumen in the cross-section. We do this by iterating over the pixels of the cross-section, left to right, top to down, until we find a pixel that belongs to a lumen. Both lumen are masked in our data, so we can identify pixels belonging to the lumen when traversing the cross-sections. Every time we find a non-marked pixel belonging to a lumen, we fill the area starting from the found pixel with a different color. While filling the area we count the pixels belonging to it to determine the area with the largest amount of pixels. The change in color marks the pixels and ensures that no pixel is counted more than once for each area. It also ensures that each area is only filled once. While we iterate over the cross-section pixels, we always keep track of the first pixel from the largest area we found.\\   
 
-We use the contour tracing algorithm that we described in \ref{contourtracingalgorithm} to extract the lumen contours from the cross-sections. To select a starting pixel we iterate over the pixels from left to right, top to down until we find a contour pixel. By doing it this way we satisfiy the condition of the contour tracing algorithmn that the rear-left pixel relative to the starting pixel is not an inner-outer-corner pixel.
-\todo[inline]{TODO: conditions in relative work} 
-The result of applying the contour tracing algorithm is an ordered list of contour pixel positions and their classifications.
+We then use the contour-tracing algorithm that we described in \ref{contourtracingalgorithm} to extract the lumen contours from the cross-sections. As a starting pixel for the contour-tracing algorithm we use the pixel from the largest area in the cross-section. In \ref{starting_pixel_conditions} we described the two conditions that a starting pixel has to fullfill. The starting pixel we use is a contour pixel and therefore satisfies the first condition. For the second condition we have to provide the inital absolute direction of the contour-tracing algorithm in a way that ensures that the left-rear pixel, relative to our starting pixel, is no inner-outer corner pixel. We set the intial absolute direction to \textit{south} to satisfy the second condition. We found the starting pixel by iterating over the cross-section pixels from left to right, top to down. This means the left-rear pixel, relative to our starting pixel, cannot be an inner-outer corner pixel. If it were an inner-outer corner pixel, it would be a contour pixel and we would have found it as the starting pixel of the area instead of the starting pixel that we actually found. The result of applying the contour-tracing algorithm is an ordered list of contour pixels and their classifications.
 An example of the extracted contours can be seen in figure \ref{fig:extracted_contours}.
 
 \section{Converting Contour to Chain Code}
-After we extracted the contours of the cross-sections we convert them to chain codes. This is mainly done to represent the contour as a one-dimensional signal, so that we can apply the fourier transform. The Encoding Scheme we use is the Freeman Chain Encoding Scheme that we describe in section \ref{freeman}. The chain codes are only stored temporarily, so we do not need to normalize them in any way.
+In this step of the pipeline we convert the ordered list of contour pixels, which we extracted in the last step of the pipeline, into chain codes.  Specifically, we create freeman chain codes and vertex chain codes. This is done to represent the contour as a one-dimensional signal, so that we can apply the fourier transform. The chain codes are only stored temporarily and we do not use them for comparison or any other task, so we do not need to normalize them in any way. \\
+
+\textbf{Freeman Chain Code}
+
+We obtain the freeman chain code of a contour by iterating over the list of extracted contour pixels. For each contour pixel we compute the relative displacement to the next contour pixel and then determine which of the chain code elements shown in figure \ref{fig:freeman} encodes the direction from the current contour pixel to the next contour pixel. We use the chain code with the 8-connectivity. \\
+
+\textbf{Vertex Chain Code}
+
+For the vertex chain code, we take advantage of the ability of the contour-tracing algorithm to classifiy the contour pixels. The vertex chain code encodes inner corner vertices, outer corner vertices, and straight contour segements as 3, 1, and 2 respectively. The contour-tracing algorithm can also differentiate inner corner vertices, outer corner vertices and vertices on a straight contour segment. In addition, the contour-tracing algorithm can also detect inner-outer corner vertices. The VCC does not differentiate inner-outer corner vertices because, it assumes a 4-connected contour. If the contour is 4-connected, there are no inner-outer corner vertices. However, that does not mean that an 8-connected contour cannot be encoded by an VCC. To still use the VCC for an 8-connected contour we handle inner-outer corner vertices like inner corner vertices and encode them with the chain code element 3. It should be noted that in the case of inner-outer corner vertices, the chain code elements do not indicate the number of cell vertices, which are in touch with the bounding contour. Table \ref{vcc_table}  shows the conversation of vertex classes obtained from the contour-tracing algorithm to VCC elements.
+\begin{table}[h!]
+\centering
+ \begin{tabular}{||c c||} 
+ \hline
+ Contour-Tracing Class &  VCC element\\ [0.5ex] 
+ \hline\hline
+ Inner & 3 \\ 
+ \hline
+ Inner-outer & 3 \\
+ \hline
+ Straight line & 2 \\
+ \hline
+ Outer & 1 \\
+ \hline
+ \hline
+\end{tabular}
+\caption{Conversation of the classification obtained from the contour-tracing algorithm to VCC elements.}
+\label{vcc_table}
+\end{table}
+
+      
 
 \section{Computing Elliptic Fourier Descriptors}
 In this step we have to compute the EFDs that will be used to represent the shapes of the lumen. As the EFDs are a set of fourier coefficients, we have to use the Discrete Fourier Transform on the chain codes we obtained in the last step of the pipeline. More specifically, we use the DFT defined in \cite{giardinia}. We described how the authors applied the fourier transform on the freeman chain code in section \ref{elliptic_fourier_descriptors}. 
 
-In our implementation we use equations \ref{eq:dft_dc} and \ref{eq:dft_coefficients} to obtain the fourier coefficients. We also use the fourier approximations in euqations \ref{eq:dft} to reconstruct the contour in a gapless manner, if it is necessary to do so. However, for most steps of our pipeline and for many rendering applications it is sufficient to reconstruct the signal using less reconstruction points. The main advantages of using less reconstruction points is the reduced memory consumption and faster processing due to the lower number of points that need to be processed. For this purpose we also implemented another fourier approximation that is very similar to the ones defined in \ref{eq:dft}. The only differences are that we set $t$ to be the index of the current reconstruction point and $T$ to be the total number of reconstruction points that should be used. This changes cause the reconstructed points to be placed equidistantly on the reconstructed contour and allow the user to freely adjust the total number of reconstruction points.\\ 
+In our implementation we use equations \ref{eq:dft_dc} and \ref{eq:dft_coefficients} to obtain the fourier coefficients. We also use the fourier approximations in equations \ref{eq:dft} to reconstruct the contour. The equations \ref{eq:dft} contains the variables $T$ and $t$, which are the euclidic length of the contour and the euclidic length to each chain code element respectively. After we compute the harmonics, we do store the length of the contour and the length up to each chain code element. To still reconstruct the contour using only the harmonics, we set $t$ to be the index of the current reconstruction point and $T$ to be the total number of reconstruction points that should be used. This changes cause the reconstructed points to be placed equidistantly on the reconstructed contour and allow the user to freely adjust the total number of reconstruction points. The main advantages of using less reconstruction points is the reduced memory consumption and faster processing due to the lower number of points that need to be processed. The contour can also still be reconstructed in a gapless manner, by using enough reconstruction points. We do a gapless reconstruction in the next step of the pipeline, where we fix the overlapping of the reconstructed contours. However, instead of increasing the number of reconstructed points, we achieve a gapless reconstruction by using B-Splines to interpolate the reconstructed points. Figure \ref{fig:efds_reconstruction} shows an example of the reconstruction for our phantom data set. On the left side of the figure are the reconstructed points. The right side of the figure shows the B-Splines that interpolate those reconstructed points to obtain a gapless and smooth contour.  \\ 
+
+
+\begin{figure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_1_harmonic.PNG}
+	\caption{}		
+	\end{subfigure}
+\hspace{0.1\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_1_harmonic.PNG}		
+\caption{}	
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_2_harmonic.PNG}
+	\caption{}		
+	\end{subfigure}
+\hspace{0.1\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_2_harmonic.PNG}		
+\caption{}	
+	\end{subfigure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_5_harmonic.PNG}
+	\caption{}		
+	\end{subfigure}
+\hspace{0.1\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_5_harmonic.PNG}		
+\caption{}	
+	\end{subfigure}
+	\caption{}
+
+\label{fig:efds_reconstruction}
+\end{figure}
+\todo[inline]{TODO: Use B-Splines in \ref{fig:efds_reconstruction}. Left Images should show the sparse points that were reconstructed, right images should show the B-Spline that interpolates the reconstructed points.}
 
 \section{Correcting of overlapping contours}
-In this step we ensure that the reconstructed contours do not overlap. This can happen if not sufficient harmonics were used during the computation of the EFDs. For this purpose we iterate over the cross-sections and retrieve the EFDs that describe the contours found in the cross-sections. In our implementation the EFDs are stored in a way that allows us to do so. Additionally, we can differentiate to which lumen each EFD belongs. By doing the iteration using the cross-sections we end up with two EFDs in each iteration. The first EFD describes the FL contour in the current cross-section, while the other describes the lumen contour of the TL. 
+In figure \ref{fig:efds_reconstruction} we can see that the reconstructed contours can overlap since they are just approximations of the segmented contours. The overlapping area is especially large, if a low number of harmonics is used for the reconstruction as in the first two rows of figure \ref{fig:efds_reconstruction}. In this step of the pipeline we ensure that the reconstructed contours do not overlap. For this purpose we iterate over the cross-sections and retrieve the EFDs that describe the contours found in the cross-sections. In our implementation the EFDs are stored in a way that allows us to do so. Additionally, we can differentiate to which lumen each EFD belongs. By doing the iteration using the cross-sections we end up with two EFDs in each iteration. The first EFD describes the FL contour in the current cross-section, while the other describes the lumen contour of the TL. 
 The algorithm to correct the overlapping contours can be summarized in the following five steps:
 
 \begin{enumerate}
@@ -105,12 +181,31 @@ The algorithm to correct the overlapping contours can be summarized in the follo
 \item Search for the corrected contours in the combined layer
 \end{enumerate}
 
-We will now describe each of these steps in detail. In the first step we create an empty image for each of the EFDs. We refer to them as \textit{layers}. Each layer has the same size as a cross-section and is initially filled with black pixels. Then we reconstruct the contours for both lumen using the EFDs. The contours are reconstructed in a gapless manner and they are drawn into their corresponding layers. When drawing the reconstructed contours, it is important to ensure that the drawn contours can still be differentiated, for example by choosing different drawing colors / pixel intensities. 
+We will now describe each of these steps in detail. In the first step we create an empty image for each of the EFDs. We refer to them as \textit{layers}. Each layer has the same size as a cross-section and is initially filled with black pixels. Then we reconstruct the contours for both lumen using the EFDs. The contours are reconstructed in a gapless manner and they are drawn into their corresponding layers. The gapless reconstruction is achieved by reconstructing only a few number of contour points and then interpolate them with B-Splines. When drawing the reconstructed contours, it is important to ensure that the drawn contours can still be differentiated, for example by choosing different drawing colors / pixel intensities. 
 
 In the second step, we want to fill the area outside of the contours in both layers. The reason for doing this is that we actually want to fill the area inside the FL. By filling the area outside of the contours,  we can trivially determine pixels inside of the contour. At the time of implementation we did not know of another way to do this. A possible different solution that we did not implement would be to use the methode described in \cite{inside_contour}.  To fill the area outside the  contours we determine a pixel outside the contour, that is used as a starting pixel for the area filling. We determine this pixel by iterating over the pixels in each layer until we find a pixel belonging to the reconstructed contour. In our implementation we iterate over the pixels from left to right, top to down. Therefore, when we find a pixel we can ensure that the pixel above the found pixel is a black pixel that lies outside of the contour.The only exception is when the found pixel is on the top border of the layer, but that would mean that the cross-sections might be too small to fit the whole lumen. In that case the size of the cross-sections should be increased until the whole lumen fits inside without being on any border of the cross-section. \\  Starting from the black pixel above the found pixel we then fill the area outside of the contour with a specific color that differens from both colors that were used to draw the reconstructed contours. For the area filling we first add the black pixel to a list. Then we repeat the following: For each pixel on the list we check all pixels in the 4-neighborhood. If a checked pixel does not belong to the reconstructed contour and it's color is not the same as filling color, we add this pixel to the list and set the pixels color to be the filling color. After all pixels in the neighborhood of a pixel are checked, we remove the current pixel from the list. The algorithmn finishes when no more pixels are on the list. \\
 After filling the area outside of the contour, we then want to fill the inside of the contour. Since the layers were initialized with black pixels, the inner area of both drawn reconstructed contours is filled with black pixels. That is why we only need to fill the area inside the contour for one of the layers. The color used for filling the inside of the contour is the same as the color that was used to draw the respective contour. We determine a pixel inside the contour by iterating over the pixels of the layer until we find a black pixel and we use this black pixel as a starting pixel to fill the inside area of the contour the same way we did when we filled the area outside of the contour. \\
 In the next step we combine both layers. We first create an image with the same size as the layers and initialize it with black pixels. For each pixel of this empty image, we check the pixels in both layers that have the same coordinates as the current pixel in the new image. If the pixel in the TL layer belongs to the reconstructed TL contour or to the inside area of the reconstructed TL contour, we set the color of the current pixel to be the same as in the TL layer. Otherwise, we check if the pixel in the FL layer belongs to the reconstructed FL contour or the area inside of the FL contour. If it does, we set the color of the current pixel to be the same as in the FL layer. If none of these cases applies, we ignore the current pixel.\\
-In the last step we extract the contours from the image that contains the combined layers. We do this by using the same method as in the second step of the pipeline. The obtained contours do not overlap, because the pixels in the TL layer were prioritized over the pixels in the FL layer when we combined both layers.        
+In the last step we extract the contours from the image that contains the combined layers. We do this by using the same method as in the second step of the pipeline. The obtained contours do not overlap, because the pixels in the TL layer were prioritized over the pixels in the FL layer when we combined both layers.     
+
+\begin{figure}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_1_harmonic_overlap_corrected.PNG}
+	\caption{}		
+	\end{subfigure}
+\hspace{0.05\textwidth}
+	\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_2_harmonic_overlap_corrected.PNG}		
+\caption{}	
+	\end{subfigure}
+\centering
+\begin{subfigure}[t]{0.45\textwidth}
+		\includegraphics[width=\textwidth]{slice_760_reconstructed_5_harmonic_overlap_corrected.PNG}		
+\caption{}	
+	\end{subfigure}
+	\caption{The reconstructed contours from figure \ref{fig:efds_reconstruction} with corrected overlapping.}
+\label{fig:obliqueslices}
+\end{figure}   
 
 \section{Generation of a vessel Wall}
 

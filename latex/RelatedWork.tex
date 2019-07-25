@@ -67,7 +67,8 @@ The fourier transform works by finding the values of the three parameters for ea
 Several different versions of the fourier transform exist to handle different kinds of input signals. In practice signals usually are finite and discrete, because memory in computers is limited and cannot store an infinite amount of values. For such input signals the \textit{Discrete Fourier Transform} (DFT) can be used. The DFT is a version of the fourier transform that can handle discrete and finite signals. The DFT assumes a periodic input signal \cite{dspguide}. Also, the first coefficient computed by the DFT is called \textit{DC Component}. The DC component does not describe the shape of the signal. In this thesis we apply the fourier transform on closed contours, which are represented by periodic, discrete, and finite functions. This means the DFT is suited for this kind of input signals.
 \newpage
 
-\section{Contour-Tracing Algorithm} \label{contourtracingalgorithm}
+\section{Contour-Tracing Algorithm} 
+\label{contourtracingalgorithm}
 A contour-tracing algorithmn can be used to extract the boundary of objects in an image. The boundary of an object is called it's contour. An overview of different approaches to contour tracing algorithmns is given in \cite{seo2016fast}. The authors also propose a new contour-tracing algorithmn that we use in this thesis. Therefore, in this section we focus on describing this particular contour-tracing algorithm.
 
 The proposed algorithm is a pixel-following method. This means that it starts at a given pixel and tries to find the next contour pixel by checking the pixels in the local neighborhood. The order in which the neighborhood pixels are checked is defined by simple rules. \\ The algorithm keeps track of the current pixel position it is on and of an absolute direction. In the context of contour-tracing algorithms, this set of the current pixel position and a direction is called a \textit{Tracer}. 
@@ -79,10 +80,11 @@ The absolute direction of the tracer of this algorithm can be \textit{north}, \t
 \newpage
 \textbf{Tracing}
 
-For initilization of the algorithm, the user has to first provide a starting pixel position, which has to fullfill the following two conditions:  
+For initilization of the algorithm, the user has to provide the initial values for the tracer. This means the user has to provide a starting pixel position and an initial absolute direction. For the algorithm to work correctly the following two conditions have to be fullfilled:
 \begin{enumerate}
 \item{The starting pixel is a contour pixel.}
-\item{The rear pixel relative to the starting pixel is not a contour pixel.}
+\item{The left-rear pixel relative to the starting pixel is not an inner-outer corner pixel.}
+\label{starting_pixel_conditions}
 \end{enumerate}
   
 After initilization the algorithm works in two phases. These two phases are repeated until the current pixel is the starting pixel and the direction is the same as at the start of the algorithm. In the first phase the algorithm only checks the left and rear-left pixels. In the second phase, it only checks the front and front-left pixels. Figure \ref{fig:contour_tracing} shows all cases that can occur in both phases. The first row of the figure shows all cases that can occur in the first phase, while the second row shows all cases that can occur in the second phase of the algorithm. The figure also shows for each case in which order the pixels are traced and what the respective direction at each contour pixel is. \\
@@ -257,7 +259,7 @@ Another reason for choosing this algorithm is it's ability to classify contour p
 \node [below= 1ex of h.south,inner sep=0pt]{\parbox{\textwidth}{\captionof{subfigure}{Outer\label{contourTracingH}}}};
 \end{tikzpicture}
 \end{minipage}
-\caption{Different cases that the contour-tracing algorithm proposed in \cite{seo2016fast} can differentiate. The first row of this figure shows all cases that can be found in the first phase of the algorithm. The second row shows the cases that can be found in in the second phase of the algorithm. The grey pixels are contour pixels, while the white pixels are not. The green dot indicates the start position of the algorithm for each case. The non-dashed arrows indicate the direction at each pixel position.}
+\caption{Different cases that the contour-tracing algorithm proposed in \cite{seo2016fast} can differentiate. The first row of this figure shows all cases that can be found in the first phase of the algorithm. The second row shows the cases that can be found in in the second phase of the algorithm. The grey pixels are contour pixels, while the white pixels are not. The green dot indicates the start position of the algorithm for each case. The non-dashed arrows indicate the direction at each pixel position. The dashed line indicates the order in which the pixel are traced.}
  \label{fig:contour_tracing}
 \end{figure}
 
@@ -317,19 +319,159 @@ An example of using EFDs to approximate a complex contour is given in figure \re
 
 
 \section{Chain Codes} \label{chain_codes}
-A contour can be trivially described by the set of it's pixels. However, there are other, often more advantageous, representations for contours. Chain codes are one of those representations. They represent a contour by encoding the relative position of one pixel in the contour to the next contour pixel. By storing the relative positions instead of the absolute pixel positions, translation invariance is achieved \cite{yang2008su}, which is one the advantages of chain codes. Another advantage is that different chain codes can be compared. However, there are two disadvantages of chain codes that make comparison difficult. The first one is that chain codes generally are sensitive to noise \cite{yang2008su}. Another problem is that chain codes usually are not invariant to rotation \cite{yang2008su}. Chain codes are also not invariant to the choosing of the starting pixel \cite{Ballard:1982:CV:578131}, but they can be normalized to be: Choosing a different starting pixel when creating the chain code results in a circular shift of the chain code. To obtain a chain code that is invariant to the choosing of different starting pixels we can circularly shift the chain code until we find the chain code that produces the lowest possible integer \cite{Ballard:1982:CV:578131}. In this thesis we will use chain codes to represent the contour as a one-dimensional signal. This is necessary to apply the fourier transform on the contour. In this section we describe two different chain codes, the freeman chain code and the vertex chain code.    
+A contour can be described by the set of it's pixels. However, there are other, often more advantageous, representations for contours. Chain codes are one of those representations. They represent a contour by encoding the relative position of one pixel in the contour to the next contour pixel. By storing the relative positions instead of the absolute pixel positions, translation invariance is achieved \cite{yang2008su}, which is one the advantages of chain codes. Another advantage is that different chain codes can be compared. However, there are two problems of chain codes that make comparison difficult. The first one is that chain codes generally are sensitive to noise \cite{yang2008su}. Another problem is that chain codes usually are not invariant to rotation \cite{yang2008su}. Chain codes are also not invariant to the choosing of the starting pixel \cite{Ballard:1982:CV:578131}, but they can be normalized to be: Choosing a different starting pixel when creating the chain code results in a circular shift of the chain code. To obtain a chain code that is invariant to the choosing of different starting pixels we can circularly shift the chain code until we find the chain code that produces the lowest possible integer \cite{Ballard:1982:CV:578131}. In this thesis we will use chain codes to represent the contour as a one-dimensional signal. This is necessary to apply the fourier transform on the contour. In this section we describe two different chain codes, the freeman chain code and the vertex chain code.    
 
 \subsection{Freeman Chain Code} \label{freeman}
-The freeman chain code \cite{freeman} is supposed to be the first chain code that was described. In literature it is often called the basic chain code and used as a representative for all chain codes, because most other chain codes are similar, but use different encoding schemes. \\ A freeman chain code describes a contour by encoding the direction of one contour pixel to the next contour pixel using numbers. The numbers range from 0 to 3 in the case the contour is 4-connected and from 0 to 7 in the case the contour is 8-connected. The specific numbers used for each direction are shown in figure \ref{fig:freeman}. An example of a freeman chain code is shown in figure \ref{fig:pixel_triangle}, where we computed the freeman chain code 111777444444 which describes a triangle. \\  
+The freeman chain code \cite{freeman} is supposed to be the first chain code that was described. In literature it is often called the basic chain code and used as a representative for all chain codes, because most other chain codes are similar, but use different encoding schemes. \\ A freeman chain code describes a contour by encoding the direction of one contour pixel to the next contour pixel using numbers. The numbers range from 0 to 3 in the case the contour is 4-connected and from 0 to 7 in the case the contour is 8-connected. The specific numbers used for each direction are shown in figure \ref{fig:freeman}. An example of a freeman chain code is shown in figure \ref{FreemanTriangle}. When we use the most left pixel from the figure as a starting pixel, the freeman chain code 111777444444. \\  
 There are several advantages to storing freeman chain codes instead of absolute pixel positions. One of those advantages is that freeman chain codes do not require as much memory as absolute pixel positions. For a 4-connected contour we only need to store 2 bits for each chain code element and for an 8-connected contour we only need to store 3 bits for each element of the freeman chain code \cite{Ballard:1982:CV:578131}, because each element can only range from 0 to 3 or from 0 to 7, repectively. Another advantage is that a contour described by a freeman chain code is invariant to translations \cite{yang2008su}. \\
+\begin{figure}
+	\begin{subfigure}[t]{0.4\textwidth}
+		\includegraphics[width=\textwidth]{chaincode4.png}
+	\caption{}		
+	\end{subfigure}
+\hspace{0.1\textwidth}
+	\begin{subfigure}[t]{0.4\textwidth}
+		\includegraphics[width=\textwidth]{chaincode.png}		
+\caption{}	
+	\end{subfigure}
+	\caption{Numbers of the freeman chain code  and the corresponding direction they encode for 4-connected (a) and 8-connected (b) contours.}
+\label{fig:freeman}
+\end{figure}
 
 \textbf{Differential Chain Codes}
 
- Freeman chain codes are not invariant to rotations \cite{yang2008su,Ballard:1982:CV:578131}. A way to make them invariant to rotations of multiples of 90\si{\degree} is to store the differences of the chain code elements instead of storing the directions from one pixel to the next  \cite{yang2008su}. Computationally, this can be done by subtracting each chain code element from the next and taking the result modulo $n$, where $n$ is the connectivity \cite{yang2008su}. In literature such chain codes are called \textit{differential chain codes} (DCC). As an example of a DCC we use the freeman chain code of the triangle in figure \ref{fig:pixel_triangle}. The resulting DCC is 006003000003.\\
+ Freeman chain codes are not invariant to rotations \cite{yang2008su,Ballard:1982:CV:578131}. A way to make them invariant to rotations of multiples of 90\si{\degree} is to store the differences of the chain code elements instead of storing the directions from one pixel to the next  \cite{yang2008su}. Computationally, this can be done by subtracting each chain code element from the next and taking the result modulo $n$, where $n$ is the connectivity \cite{yang2008su}. In literature such chain codes are called \textit{differential chain codes} (DCC). As an example of a DCC we use the freeman chain code of the triangle in figure \ref{FreemanTriangle}. The resulting DCC is 006003000003.\\
+
+\newcommand\FreemanExample{
+\begin{tikzpicture}
+\draw [very thick, draw=black, fill=white] (0,0) grid  (7,4) rectangle (0,0);
+
+%diagonal left to up
+\filldraw [fill=gray!50, draw=black, very thick] (0, 0) rectangle (1, 1);
+\filldraw [fill=gray!50, draw=black, very thick] (1, 1) rectangle (2, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (2, 2) rectangle (3, 3);
+\filldraw [fill=gray!50, draw=black, very thick] (3, 3) rectangle (4, 4);
+
+%straight left to right
+\filldraw [fill=gray!50, draw=black, very thick] (1, 0) rectangle (2, 1);
+\filldraw [fill=gray!50, draw=black, very thick] (2, 0) rectangle (3, 1);
+\filldraw [fill=gray!50, draw=black, very thick] (3, 0) rectangle (4, 1);
+\filldraw [fill=gray!50, draw=black, very thick] (4, 0) rectangle (5, 1);
+\filldraw [fill=gray!50, draw=black, very thick] (5, 0) rectangle (6, 1);
+\filldraw [fill=gray!50, draw=black, very thick] (6, 0) rectangle (7, 1);
+
+%diagonal right to up
+\filldraw [fill=gray!50, draw=black, very thick] (5, 1) rectangle (6, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (4, 2) rectangle (5, 3);
+
+%inner
+\filldraw [fill=gray!50, draw=black, very thick] (2, 1) rectangle (3, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (3, 1) rectangle (4, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (4, 1) rectangle (5, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (3, 2) rectangle (4, 3);
+
+%arrows
+\draw[draw=black, line width=1.0pt, -Latex] (0.6, 0.6) -- (1.4, 1.4);
+\draw[draw=black, line width=1.0pt, -Latex] (1.6, 1.6) -- (2.4, 2.4);
+\draw[draw=black, line width=1.0pt, -Latex] (2.6, 2.6) -- (3.4, 3.4);
+\draw[draw=black, line width=1.0pt, -Latex] (3.65, 3.35) -- (4.35, 2.65);
+\draw[draw=black, line width=1.0pt, -Latex] (4.65, 2.35) -- (5.35, 1.65);
+\draw[draw=black, line width=1.0pt, -Latex] (5.65, 1.35) -- (6.35, 0.65);
+\draw[draw=black, line width=1.0pt, -Latex] (6.35, 0.5) -- (5.65, 0.5);
+\draw[draw=black, line width=1.0pt, -Latex] (5.35, 0.5) -- (4.65, 0.5);
+\draw[draw=black, line width=1.0pt, -Latex] (4.35, 0.5) -- (3.65, 0.5);
+\draw[draw=black, line width=1.0pt, -Latex] (4.35, 0.5) -- (3.65, 0.5);
+\draw[draw=black, line width=1.0pt, -Latex] (3.35, 0.5) -- (2.65, 0.5);
+\draw[draw=black, line width=1.0pt, -Latex] (2.35, 0.5) -- (1.65, 0.5);
+\draw[draw=black, line width=1.0pt, -Latex] (1.35, 0.5) -- (0.65, 0.5);
+
+%numbers
+\node[scale=1.4] at (1.5, 1.5) {1};
+\node[scale=1.4] at (2.5, 2.5) {1};
+\node[scale=1.4] at (3.5, 3.5) {1};
+\node[scale=1.4] at (4.5, 2.5) {7};
+\node[scale=1.4] at (5.5, 1.5) {7};
+\node[scale=1.4] at (6.5, 0.5) {7};
+\node[scale=1.4] at (5.5, 0.5) {4};
+\node[scale=1.4] at (4.5, 0.5) {4};
+\node[scale=1.4] at (3.5, 0.5) {4};
+\node[scale=1.4] at (2.5, 0.5) {4};
+\node[scale=1.4] at (1.5, 0.5) {4};
+\node[scale=1.4] at (0.5, 0.5) {4};
+
+
+\end{tikzpicture}
+}
+
+\newcommand\VCCExample{
+\begin{tikzpicture}
+\draw [very thick, draw=black, fill=white] (0,0) grid  (9,6) rectangle (0,0);
+
+%diagonal left to up
+\filldraw [fill=gray!50, draw=black, very thick] (1, 1) rectangle (2, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (2, 2) rectangle (3, 3);
+\filldraw [fill=gray!50, draw=black, very thick] (3, 3) rectangle (4, 4);
+\filldraw [fill=gray!50, draw=black, very thick] (4, 4) rectangle (5, 5);
+
+%straight left to right
+\filldraw [fill=gray!50, draw=black, very thick] (2, 1) rectangle (3, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (3, 1) rectangle (4, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (4, 1) rectangle (5, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (5, 1) rectangle (6, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (6, 1) rectangle (7, 2);
+\filldraw [fill=gray!50, draw=black, very thick] (7, 1) rectangle (8, 2);
+
+%diagonal right to up
+\filldraw [fill=gray!50, draw=black, very thick] (6, 2) rectangle (7, 3);
+\filldraw [fill=gray!50, draw=black, very thick] (5, 3) rectangle (6, 4);
+
+%inner
+\filldraw [fill=gray!50, draw=black, very thick] (3, 2) rectangle (4, 3);
+\filldraw [fill=gray!50, draw=black, very thick] (4, 2) rectangle (5, 3);
+\filldraw [fill=gray!50, draw=black, very thick] (5, 2) rectangle (6, 3);
+\filldraw [fill=gray!50, draw=black, very thick] (4, 3) rectangle (5, 4);
+
+\node[scale=1.4] at (0.8, 2.25) {1};
+\node[scale=1.4] at (1.8, 2.25) {3};
+\node[scale=1.4] at (1.8, 3.25) {1};
+\node[scale=1.4] at (2.8, 3.25) {3};
+\node[scale=1.4] at (2.8, 4.25) {1};
+\node[scale=1.4] at (3.8, 4.25) {3};
+\node[scale=1.4] at (3.8, 5.25) {1};
+\node[scale=1.4] at (5.2, 5.25) {1};
+\node[scale=1.4] at (5.2, 4.25) {3};
+\node[scale=1.4] at (6.2, 4.25) {1};
+\node[scale=1.4] at (6.2, 3.25) {3};
+\node[scale=1.4] at (7.2, 3.25) {1};
+\node[scale=1.4] at (7.2, 2.25) {3};
+\node[scale=1.4] at (8.2, 2.25) {1};
+\node[scale=1.4] at (8.2, 0.75) {1};
+\node[scale=1.4] at (7.2, 0.75) {2};
+\node[scale=1.4] at (6.2, 0.75) {2};
+\node[scale=1.4] at (5.2, 0.75) {2};
+\node[scale=1.4] at (3.8, 0.75) {2};
+\node[scale=1.4] at (2.8, 0.75) {2};
+\node[scale=1.4] at (1.8, 0.75) {2};
+\node[scale=1.4] at (0.8, 0.75) {1};
+\end{tikzpicture}
+}
+
+\begin{figure}
+\centering
+\begin{minipage}{\textwidth}
+\begin{tikzpicture}[font=\small]
+\node[draw,inner sep=0pt] (a){\FreemanExample};
+\node[draw,inner sep=0pt, right of=a, node distance=9cm] (b){\VCCExample};
+\node [below= 1ex of a.south,inner sep=0pt, text width=5cm]{\parbox{\textwidth}{\captionof{subfigure}{Freeman Chain Code\label{FreemanTriangle}}}};
+\node [below= 1ex of b.south,inner sep=0pt, text width=5cm]{\parbox{\textwidth}{\captionof{subfigure}{Vertex Chain Code\label{VCCTriangle}}}};
+\end{tikzpicture}
+\end{minipage}
+\caption{Example of the Freeman and Vertex Chain Code.}
+ \label{fig:chainCodeExamples}
+\end{figure}
 
 \subsection{Vertex Chain Code}
-\todo[inline]{TODO: add image for VCC}
-An relatively new chain code is the vertex chain code (VCC) \cite{vertex_chain_code}. The VCC does not follow the pixels as the freeman chain code does. Instead, it follows the vertices that lie on the border between the pixels and the background. This difference becomes more apparent if we consider the chain codes of a single pixel. In such a case the freeman chain code consists of 0 elements. The VCC in this case is 1111. This is because the VCC moves along the 4 edges of the pixel. Each element of the VCC indicates the number of cell vertices, which are in touch with the bounding contour of the shape at that position. Another important difference to freeman chain codes is that VCCs are rotation invariant. The VCC can be used for rectangular (pixels), triangle or hexagonal cells. In the following we will describe the reconstruction only for the case of rectangular cells, as that is the only case that is relevant in this thesis. In the case of rectangular cells, the element values can only range from 1 to 3. \\ To reconstruct the contour described by a VCC several steps have to be done: First each element of the VCC is converted to a \textit{slope change} as defined by the slope change notation in \cite{slope_change_notation}. In the case of rectangular cells this means that the element values 1, 2 and 3 are replaced by 0.5, 0.0, and -0.5 respectively. Then the integral of this slope change chain code is computed, which is the addition of the elements, element by element. For example consider the slope change chain code 1.0 0.5 0.0 -0.5. The first element of the integral is then 1.0. The second element is 1.5 (1.0 + 0.5). The third element is 1.5 (1.0 + 0.5 + 0.0) and the last element is 1.0 (1.0 + 0.5 + 0.0 - 0.5). The finished integral is then 1.0 1.5 1.5 1.0. Each element of the integral can be used to compute the x- and y-displacement from one vertex to the next using the equations in \ref{eq:vcc_reconstruction}. $C_{x_i}$ and $C_{y_i}$ are the displacements described by the $i$-th element in the integral in x- and y-direction respectively. $l$ is the length of one side of a cell. $c_i$ is the current element of the integral. 
+An relatively new chain code is the vertex chain code (VCC) \cite{vertex_chain_code}. The VCC does not follow the pixels as the freeman chain code does. Instead, it follows the vertices that lie on the border between the pixels and the background. The difference becomes more apparent if we consider the chain codes of a single pixel. In such a case the freeman chain code consists of 0 elements. The VCC in this case is 1111. This is because the VCC moves along the 4 edges of the pixel. Each element of the VCC indicates the number of cell vertices, which are in touch with the bounding contour of the shape at that position. Figure \ref{VCCTriangle} shows an example of the VCC. In the figure each vertex on the boundary of the contour corresponds to one chain code element. Another important difference to freeman chain codes is that VCCs are rotation invariant. The VCC can be used for rectangular (pixels), triangle or hexagonal cells. In the following we describe the reconstruction of the boundary of the contour only for the case of rectangular cells, as that is the only case that is relevant in this thesis. In the case of rectangular cells, the element values can be 1, 2, or 3. As can be seen in figure \ref{VCCTriangle} outer corner vertices, vertices on straight contour segments, and inner corner vertices correspond to chain code elements 1, 2, and 3 respectively. \\ To reconstruct a contour described by a VCC several steps have to be done: First each element of the VCC is converted to a \textit{slope change} as defined by the slope change notation in \cite{slope_change_notation}. In the case of rectangular cells this means that the element values 1, 2 and 3 are replaced by 0.5, 0.0, and -0.5 respectively. Then the integral of this slope change chain code is computed, which is the addition of the elements, element by element. For example consider the slope change chain code 1.0 0.5 0.0 -0.5. The first element of the integral is then 1.0. The second element is 1.5 (1.0 + 0.5). The third element is 1.5 (1.0 + 0.5 + 0.0) and the last element is 1.0 (1.0 + 0.5 + 0.0 - 0.5). The finished integral is then 1.0 1.5 1.5 1.0. Each element of the integral can be used to compute the x- and y-displacement from one vertex to the next using the equations in \ref{eq:vcc_reconstruction}. $C_{x_i}$ and $C_{y_i}$ are the displacements described by the $i$-th element in the integral in x- and y-direction respectively. $l$ is the length of one side of a cell. $c_i$ is the current element of the integral. 
 
 \begin{equation} \label{eq:vcc_reconstruction}
 \begin{split} 
@@ -338,19 +480,7 @@ C_{y_i} = l  sin(\pi c_i) \\
 \end{split}
 \end{equation}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth/3]{chaincode.png}
-\caption{The numbers of the freeman chain code. The next pixel is described by a number of 0 to 7 depending on where it is located in the 8-neighborhood of the current pixel.}
-\label{fig:freeman}
-\end{figure}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth/2]{pixel_triangle.png}
-\caption{A triangle composed of pixels on a grid. The red pixel is the startng pixel. A possible freeman chain code of this triangle is then 111777444444. The differential chain code of this freeman chain code is 006003000003.}
-\label{fig:pixel_triangle}
-\end{figure}
 
 \subfilebib % Makes bibliography available when compiling as subfile
 \end{document}
