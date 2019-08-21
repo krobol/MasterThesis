@@ -19,6 +19,10 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 
+%booktabs
+\usepackage{booktabs}
+\renewcommand{\arraystretch}{1.2}
+
 % Landscape pages
 \usepackage{lscape}
 
@@ -120,7 +124,7 @@
 % Undef subfilebib for main file, so there is only one bibliography when compiling the whole thesis.
 \def\subfilebib{}
 
-%\subfile{Title}
+\subfile{Title}
 \setcounter{page}{1} % Ignore titel page in numbering.
 
 % TOC
