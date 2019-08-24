@@ -19,13 +19,13 @@ Model-free methods instead use the underlying data to create surfaces. They are 
 
 \section{Main Contribution}
 
-Our main contribution is the investgation of Elliptic Fourier Descriptors (EFD) for the purpose of capturing the shape of ADs. We will try to use EFDs to describe the contours of the lumen, which we extract from cross-sections. Therefore, a segmentation of the true and false lumen is necessary and we also need the centerlines of both lumen. The extracted contours have to be described by chain codes before they can be used to compute the EFDs. We will investigate the differences that occur when different chain codes are used and will try to give a recommendation of which chain code should be used. We will also use the EFDs with 3D surface visulization techniques to render and visualize the AD. Moreover, we will investigate the accuracy of the EFDs and describe how they can be utilized for other tasks like comparison of vessels, predictions of the AD etc..
+Our main contribution is the investgation of Elliptic Fourier Descriptors (EFD) for the purpose of capturing the shape of ADs. We will try to use EFDs to describe the contours of the lumen, which we extract from cross-sections. Therefore, a segmentation of the true and false lumen is necessary and we also need the centerlines of both lumen. The extracted contours have to be described by chain codes before they can be used to compute the EFDs. We will investigate the differences that occur when different chain codes are used and will try to give a recommendation of which chain code should be used. We will also use the EFDs with 3D surface visulization techniques to render and visualize the AD. Moreover, we will investigate the accuracy of the EFDs.
 
 \chapter{Medical Background}
 
-\todo[inline]{TODO: Add image of the aorta}
-\todo[inline]{TODO: Add info about landmarks}
-\todo[inline]{TODO: differences to hematom etc.}
+%\todo[inline]{TODO: Add image of the aorta}
+%\todo[inline]{TODO: Add info about landmarks}
+%\todo[inline]{TODO: differences to hematom etc.}
 Aortic Dissection (AD) describes a condition of the aortic vessel wall in which a tear in the intima, the innermost layer of the aortic vessel wall, allows blood to flow between the layers of the vessel wall. This causes the layers of the aortic vessel wall to be forced apart by the blood pressure, drastically increasing the diameter of the aorta and forming a secondary flow channel, the false lumen (FL). If untreated the FL keeps growing in size and propagates along the actual flow channel, the true lumen (TL).
 
 The blood flowing in the FL can re-enter the TL, but often causes uncontrollable blood pressure. The expanded FL has a high risk of rupture and can physically compress \cite{criado2011aortic} and damage the aorta or other vessels connected to it, causing insufficient blood supply and organ failure \cite{meszaros2000epidemiology,desanctis1987aortic}. 
@@ -53,7 +53,7 @@ The Abdominal Aorta is the direct continuation of the descending aorta. Importan
 
 \section{Classification of Aortic Dissections}
 
-\todo[inline]{TODO: add distribution of types}
+%\todo[inline]{TODO: add distribution of types}
 \textbf{DeBakey Classifcation}
 
 The DeBakey classification \cite{desanctis1987aortic,goldfinger2014thoracic,criado2011aortic} classifies dissections by the location of the initial tear in the intima and the extent of the FL. It distinguishes three classes: type \uproman{1}, type \uproman{2}, and type \uproman{3} dissections. 
@@ -72,7 +72,7 @@ Recently, a new temporal classifcation was proposed by the IRAD \cite{doi:10.116
 
 \section{Diagnosis}
 
-\todo[inline]{TODO: describe the data we use}
+%\todo[inline]{TODO: describe the data we use}
 The mortality of AD has been estimated to be 1\% to 2\% per hour immediately after symptom onset \cite{doi:10.1161/CIRCULATIONAHA.117.031264,meszaros2000epidemiology,goldfinger2014thoracic}. This means a fast diagnosis is of particular importance. In 2010 a guideline was created \cite{hiratzka20102010} to ensure a fast and accurate diagnosis. The guideline uses risk factors that include symptoms, medical history, family history of aortic disease, and findings of examination by imaging modalities to estimate the risk level of patients. The guideline also describes how the different imaging modalities can be used to confirm or exclude an AD and which imaging modalities may delay the diagnosis or are only suited for specific situations or types of ADs. In this section we give an overview of available imaging modalities that are usually used in the context of ADs.
 
 \textbf{Echocardiography}
@@ -87,11 +87,11 @@ Transthoracic Echocardiography (TTE) is a non-invasive type of echocardiography 
 
 Transesophageal echocardiography (TEE) is an invasive type of echocardiography that is performed by placing a probe that contains an ultrasonic transducer in the esophagus of the patient. TEE can be used to visualize the ascending aorta, parts of the arch and the descending aorta with high spatial resolution \cite{baliga2014role}. TEE also has a high sensitivity of up to 99\% and a specificity of 89\% \cite{baliga2014role}. However, an upper portion of the ascending aorta and the branches of the aortic arch \cite{shiga2006diagnostic,baliga2014role}, as well as the branches of the abdominal aorta cannot be adequately assested by TEE \cite{baliga2014role}. Another disadvantage of TEE is that patients have to be sedated. The resulting images also often contain artifacts that can be mistaken for a FL. Therefore, an experienced operator is needed for image aquisition and interpretation \cite{shiga2006diagnostic,baliga2014role}. These disadvantages make TEE not the first choice, but it is relatively fast compared to CT and MRI, has a high sensitivity and specifcity, and therefore can be useful in emergency situations where fast assement of the aorta is necessary \cite{shiga2006diagnostic,baliga2014role}. TEE is also used to perform endovascular stent grafting and for confirming success after surgery \cite{baliga2014role}. 
 
-\textbf{Computer Tomography} 
-\todo[inline]{TODO}
+%\textbf{Computer Tomography} 
+%\todo[inline]{TODO}
 
-\textbf{Magnetic Resonance imaging}
-\todo[inline]{TODO}
+%\textbf{Magnetic Resonance imaging}
+%\todo[inline]{TODO}
 \section{Therapy} 
 
 Depending on the risk level that was determined in the diagnosis, the type of the AD, and the state of the patient different therapies are recommened by the guideline \cite{hiratzka20102010}. The recommendations are visualized in a flow chart and are easily understood.

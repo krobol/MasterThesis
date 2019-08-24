@@ -100,8 +100,7 @@ Another problem caused by high curvature of the centerline is the appearance of 
 
 Lumen can appear distorted within the cross-sections. Each cross-section is oriented orthogonal to the centerline that was used to obtain them. However, they are not oriented orthogonal to other centerlines. If a cross-section is not oriented orthogonal to the centerline of a lumen, the lumen appears elongated in the cross-section, because the diameter of the lumen in direction of the cross-section is larger than in the direction orthogonal to the centerline of the lumen. This is illustrated in Figure \ref{fig:cross-section_distortion}. This means that when we use the TCL to obtain cross-sections, the cross-sections are not oriented orthogonal to the centerlines of the FL and TL and both lumen may appear elongated. If we use the TL centerline, the cross-sections are not orthogonal to the FL centerline and the FL may appear elongated. If we use the FL centerline, the cross-sections are not orthogonal to the TL and the TL may appear elongated. Elongated contours are problematic because they make estimation of the lumen size difficult. Also, an elongated lumen can mean that the used step size is too large to appropriately sample the elongated lumen, resulting in a loss of features of the elongated lumen.
 
-Currently we do not solve or avoid this problem. We do not estimate the size of the lumen. We assume that the lumen surface can be more accurately reconstructed by using the centerline of the lumen that is to be reconstructed than when using any other centerline. We also assume that the TCL is the second best choice for reconstruction: Since the TCL interpolates points that lie between the other centerlines, the angle between cross-sections obtained from the FL centerline and cross-sections obtained from the TL centerline should also be interpolated by cross-sections obtained from the TCL. This is illustrated in Figure .... .
-\todo[inline]{todo: Keine ahnung ob man das so versteht. Bild einfügen}
+Currently we do not solve or avoid this problem. We do not estimate the size of the lumen. We assume that the lumen surface can be more accurately reconstructed by using the centerline of the lumen that is to be reconstructed than when using any other centerline. We also assume that the TCL is the second best choice for reconstruction: Since the TCL interpolates points that lie between the other centerlines, the angle between cross-sections obtained from the FL centerline and cross-sections obtained from the TL centerline should also be interpolated by cross-sections obtained from the TCL. This is illustrated in Figure .... 
 
 \textbf{Choosing of the Centerline}
 
@@ -409,7 +408,6 @@ In the case the the contour is a VCC we define the length of each chain code ele
 
 \label{fig:efds_reconstruction}
 \end{figure}
-\todo[inline]{TODO: Use B-Splines in \ref{fig:efds_reconstruction}. Left Images should show the sparse points that were reconstructed, right images should show the B-Spline that interpolates the reconstructed points.}
 
 \section{Correcting of overlapping contours}
 In Figure \ref{fig:efds_reconstruction} we can see that the reconstructed contours can overlap since they are just approximations of the segmented contours. The overlapping area is especially large, if a low number of harmonics is used for the reconstruction as in the first two rows of Figure \ref{fig:efds_reconstruction}. In this step of the pipeline we ensure that the reconstructed contours do not overlap. For this purpose we iterate over the cross-sections and retrieve the EFDs that describe the contours found in the corresponding cross-sections. In our implementation the EFDs are stored in a way that allows us to do so. Additionally, we can differentiate to which lumen each EFD belongs. By doing the iteration using the cross-sections we end up with two EFDs in each iteration. The first EFD describes the FL contour in the current cross-section, while the other describes the lumen contour of the TL. 
@@ -667,39 +665,292 @@ In this chapter we present the results and also evaluate the utility of the diff
 \label{fig:datasets}
 \end{figure}
 
-\section{Rendering Results}
 
-\todo[inline]{For different parameters ?}
-In this section we shortly present the rendering results for the 3 datasets shown in Figure \ref{fig:datasets}.
-\begin{figure}[h]
-\centering
-\begin{subfigure}{0.30\textwidth}
-		\includegraphics[width=\textwidth]{result_1_zoomed.PNG}
-	\caption{}		
-	\end{subfigure}
-\begin{subfigure}{0.30\textwidth}
-		\includegraphics[width=\textwidth]{result_dataset2_Both_zoomed.PNG}
-	\caption{}		
-	\end{subfigure}
-\begin{subfigure}{0.30\textwidth}
-		\includegraphics[width=\textwidth]{result_3_zoomed.PNG}
-	\caption{}		
-	\end{subfigure}
-
-\caption{The rendering results for the 3 datasets in Figure \ref{fig:datasets}.}
-\label{fig:datasets}
-\end{figure}
 
 \section{Evaluation}
-In this section we describe how the utility of the chain codes is evaluated. We do the following for different number of harmonics.
-First we compute the approximation error by using the summed squared error (SSE). This SSE is defined by: 
-\begin{equation} \label{eq:sse}
- SSE = \sum_{i=1}^{K}(\tilde{P_i} - P_i)^2
+In this section we describe how the utility of the chain codes is evaluated. To compare different chain codes we compute the approximation error of the chain code for each dataset by using the mean squared error (MSE), which is defined as follows: 
+\begin{equation} \label{eq:mse}
+ MSE = \frac{1}{n}\sum_{i=1}^{n}(Y_i - \hat{Y_i})^2
 \end{equation} 
-with $\tilde{P_i}$ being the $ith$ point from the reconstructed contour and $P_i$ being the closest point to $\tilde{P_i}$ out of all points from the original contour.
-Then we 
+with $Y_i$ being the $ith$ point from the reconstructed contour and $\hat{Y_i}$ being the closest point to $Y_i$ out of all points from the original contour. As for parameters, we have to use a high number of cross-sections to ensure that the results are representative for the dataset. We observed that the MSE does not change significantly if we use more than 1000 cross-section, therefore we use 1000 cross-sections for each dataset. Another parameter that is of importance for the computation of the MSE is the number of harmonics that are used for the reconstruction of the contours. We observed that the MSE can change drastically if less than 10 harmonics are used. If more harmonics are used, the change is not as drastically. Therefore, we compute the MSE for 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, and 50 harmonics.
+Additionally, we compare the contours, that were reconstructed using different chain codes, visually. 
+\begin{table}
+\centering
+ \begin{tabular}{c c c c} 
+ \toprule
+ Dataset &  Chain Code & Number of Harmonics & MSE\\ [0.5ex] 
+ \midrule
+1 & Freeman & 1  & 41.700150 \\
+1 & Freeman & 2  & 10.539133 \\
+1 & Freeman & 3  & 4.285178  \\
+1 & Freeman & 4  & 2.177701  \\
+1 & Freeman & 5  & 1.522220  \\
+1 & Freeman & 6  & 1.205795  \\
+1 & Freeman & 7  & 1.010471  \\
+1 & Freeman & 8  & 0.873905  \\
+1 & Freeman & 9  & 0.781283  \\
+1 & Freeman & 10 & 0.736440  \\
+1 & Freeman & 15 & 0.595475  \\
+1 & Freeman & 20 & 0.544211  \\
+1 & Freeman & 25 & 0.514891  \\
+1 & Freeman & 30 & 0.496188  \\
+1 & Freeman & 35 & 0.484322  \\
+1 & Freeman & 40 & 0.475767  \\
+1 & Freeman & 45 & 0.469504  \\
+1 & Freeman & 50 & 0.465182  \\
+1 & VCC & 1  & 37.467556 \\
+1 & VCC & 2  & 10.197480 \\
+1 & VCC & 3  & 4.089265  \\
+1 & VCC & 4  & 2.086906  \\
+1 & VCC & 5  & 1.452539  \\
+1 & VCC & 6  & 1.146783  \\
+1 & VCC & 7  & 0.959039  \\
+1 & VCC & 8  & 0.841427  \\
+1 & VCC & 9  & 0.749058  \\
+1 & VCC & 10 & 0.702302  \\
+1 & VCC & 15 & 0.575618  \\
+1 & VCC & 20 & 0.534430  \\
+1 & VCC & 25 & 0.508727  \\
+1 & VCC & 30 & 0.496510  \\
+1 & VCC & 35 & 0.486574  \\
+1 & VCC & 40 & 0.481309  \\
+1 & VCC & 45 & 0.479244  \\
+1 & VCC & 50 & 0.477566  \\
+\bottomrule
+\end{tabular}
+\caption{MSE for the first dataset.}
+\label{mse_1}
+\end{table}
 
-\chapter{Conclusion and Future Work:}\label{chap:basics}
+\begin{table}
+\centering
+ \begin{tabular}{c c c c} 
+ \toprule
+ Dataset &  Chain Code & Number of Harmonics & MSE\\ [0.5ex] 
+ \midrule
+2 & Freeman & 1  & 17.171822 \\
+2 & Freeman & 2  & 5.116983  \\
+2 & Freeman & 3  & 1.943756  \\
+2 & Freeman & 4  & 1.214997  \\
+2 & Freeman & 5  & 0.998725  \\
+2 & Freeman & 6  & 0.872170  \\
+2 & Freeman & 7  & 0.775425  \\
+2 & Freeman & 8  & 0.722692  \\
+2 & Freeman & 9  & 0.689600  \\
+2 & Freeman & 10 & 0.661414  \\
+2 & Freeman & 15 & 0.581981  \\
+2 & Freeman & 20 & 0.544097  \\
+2 & Freeman & 25 & 0.522342  \\
+2 & Freeman & 30 & 0.510005  \\
+2 & Freeman & 35 & 0.501772  \\
+2 & Freeman & 40 & 0.497396  \\
+2 & Freeman & 45 & 0.494069  \\
+2 & Freeman & 50 & 0.493128  \\
+2 & VCC & 1  & 15.058990 \\
+2 & VCC & 2  & 4.829389  \\
+2 & VCC & 3  & 1.838329  \\
+2 & VCC & 4  & 1.084298  \\
+2 & VCC & 5  & 0.860914  \\
+2 & VCC & 6  & 0.749936  \\
+2 & VCC & 7  & 0.673360  \\
+2 & VCC & 8  & 0.621410  \\
+2 & VCC & 9  & 0.590078  \\
+2 & VCC & 10 & 0.567702  \\
+2 & VCC & 15 & 0.497248  \\
+2 & VCC & 20 & 0.462697  \\
+2 & VCC & 25 & 0.447745  \\
+2 & VCC & 30 & 0.440826  \\
+2 & VCC & 35 & 0.436052  \\
+2 & VCC & 40 & 0.437813  \\
+2 & VCC & 45 & 0.442165  \\
+2 & VCC & 50 & 0.442771 \\
+\bottomrule
+\end{tabular}
+\caption{MSE for the second dataset.}
+\label{mse_2}
+\end{table}
+
+\begin{table}
+\centering
+ \begin{tabular}{c c c c} 
+ \toprule
+ Dataset &  Chain Code & Number of Harmonics & MSE\\ [0.5ex] 
+ \midrule
+3 & Freeman & 1  & 41.314693 \\
+3 & Freeman & 2  & 10.556674 \\
+3 & Freeman & 3  & 4.198791  \\
+3 & Freeman & 4  & 2.635710  \\
+3 & Freeman & 5  & 1.705141  \\
+3 & Freeman & 6  & 1.255415  \\
+3 & Freeman & 7  & 1.046424  \\
+3 & Freeman & 8  & 0.909041  \\
+3 & Freeman & 9  & 0.829400  \\
+3 & Freeman & 10 & 0.773351  \\
+3 & Freeman & 15 & 0.627973  \\
+3 & Freeman & 20 & 0.564997  \\
+3 & Freeman & 25 & 0.528647  \\
+3 & Freeman & 30 & 0.504973  \\
+3 & Freeman & 35 & 0.490323  \\
+3 & Freeman & 40 & 0.481045  \\
+3 & Freeman & 45 & 0.475352  \\
+3 & Freeman & 50 & 0.470534 \\
+3 & VCC & 1  & 37.136673 \\
+3 & VCC & 2  & 10.608171 \\
+3 & VCC & 3  & 3.859052  \\
+3 & VCC & 4  & 2.483811  \\
+3 & VCC & 5  & 1.605258  \\
+3 & VCC & 6  & 1.155338  \\
+3 & VCC & 7  & 0.984269  \\
+3 & VCC & 8  & 0.855931  \\
+3 & VCC & 9  & 0.787047  \\
+3 & VCC & 10 & 0.736885  \\
+3 & VCC & 15 & 0.605078  \\
+3 & VCC & 20 & 0.547484  \\
+3 & VCC & 25 & 0.515092  \\
+3 & VCC & 30 & 0.495841  \\
+3 & VCC & 35 & 0.485159  \\
+3 & VCC & 40 & 0.480503  \\
+3 & VCC & 45 & 0.477290  \\
+3 & VCC & 50 & 0.477742 \\
+\bottomrule
+\end{tabular}
+\caption{MSE for the third dataset.}
+\label{mse_3}
+\end{table}
+
+\section{Rendering Results}
+
+In this section we shortly present the rendering results for each dataset and for different numbers of harmonics. Figure \ref{fig:dataset1}, Figure \ref{fig:dataset2}, and Figure \ref{fig:dataset3} show the rendering results for the 3 datasets shown in Figure \ref{fig:datasets}, for 1, 5, and 10 harmonics respectively.
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_1/1_cropped.png}
+	\caption{}		
+\label{fig:dataset1_a}
+	\end{subfigure}
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_1/5_cropped.png}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_1/10_cropped.png}
+	\caption{}		
+\label{fig:dataset1_c}
+	\end{subfigure}
+\caption{The rendering results for the first dataset with 1, 5, and 10 harmonics.}
+\label{fig:dataset1}
+\end{figure}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_2/1_cropped.png}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_2/5_cropped.png}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_2/10_cropped.png}
+	\caption{}		
+	\end{subfigure}
+\caption{The rendering results for the second dataset with 1, 5, and 10 harmonics.}
+\label{fig:dataset2}
+\end{figure}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_3/1_cropped.png}
+	\caption{}	
+\label{fig:dataset3_a}	
+	\end{subfigure}
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_3/5_cropped.png}
+	\caption{}		
+\label{fig:dataset3_b}
+	\end{subfigure}
+\begin{subfigure}{0.30\textwidth}
+		\includegraphics[width=\textwidth]{/render_results/freeman/dataset_3/10_cropped.png}
+	\caption{}		
+\label{fig:dataset3_c}
+	\end{subfigure}
+\caption{The rendering results for the third dataset with 1, 5, and 10 harmonics.}
+\label{fig:dataset3}
+\end{figure}
+
+\section{Discussion}
+\begin{figure}[!htb]
+\centering
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExample/originalContour.PNG}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExample/0_62_alone.PNG}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExample/0_59_alone.PNG}
+	\caption{}		
+	\end{subfigure}
+
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExample/0_81_alone.PNG}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExample/1_3_alone.PNG}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExample/3_81_alone.PNG}
+	\caption{}		
+	\end{subfigure}
+
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExampleVcc/originalContour.PNG}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExampleVcc/0_44.PNG}
+	\caption{}
+	\label{vccexcept}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExampleVcc/0_47.PNG}
+	\caption{}		
+	\end{subfigure}
+
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExampleVcc/0_56.PNG}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExampleVcc/1_1.PNG}
+	\caption{}		
+	\end{subfigure}
+\begin{subfigure}{0.25\textwidth}
+		\includegraphics[width=\textwidth]{/slice_results/dataset2/badExampleVcc/3_5.PNG}
+	\caption{}		
+	\end{subfigure}
+
+\caption{Reconstruction with the Freeman Chain Code (a-f) and VCC (g-l). \textbf{(a)} Original Contour \textbf{(b)} 50 Harmonics, MSR: 0.62 \textbf{(c)} 20 Harmonics, MSR: 0.59 \textbf{(d)} 10 Harmonics, MSR: 0.81 \textbf{(e)} 5 Harmonics, MSR: 1.3 \textbf{(f)} 1 Harmonic, MSR: 3.81 \textbf{(g)} Original Contour \textbf{(h)} 50 Harmonics, MSR: 0.44 \textbf{(i)} 20 Harmonics, MSR: 0.47 \textbf{(j)} 10 Harmonics, MSR: 0.56 \textbf{(k)} 5 Harmonics, MSR: 1.1 \textbf{(l)} 1 Harmonic, MSR: 3.5}
+\label{fig:slice_fcc}
+\end{figure}
+
+By comparing the MSE values from Table \ref{mse_1}, Table \ref{mse_2}, and Table \ref{mse_3} we notice that the MSE for the VCC usually is lower than the MSE for the Freeman Chain Code. Looking at specific examples like the one shown in Figure \ref{fig:slice_fcc} also confirms that a contour reconstructed by a VCC usually has a lower MSE than the contour that was reconstructed using the Freeman chain code. Except for Figure \ref{vccexcept}, the VCC contours in the Figure also seem smoother than the Freeman chain code contours. However, we did not explicitly measure smoothness. Nevertheless, we measured that the VCC usually has a lower MSE than the Freeman chain code. This means that less harmonics can be used to achieve similar results. Therefore, we recommend to use the VCC instead of the Freeman chain code for this purpose.  
+
+The rendering results in Figure \ref{fig:dataset1}, Figure \ref{fig:dataset2} and Figure \ref{fig:dataset3} show why using EFDs to model ADs is an improvement to the current state of the art. In Figure \ref{fig:dataset1_a} only one harmonic was used. Therefore, it corresponds to the current state of the art of modeling vascular structures with ellipses. However, in \ref{fig:dataset1_a} the surface was reconstructed incorrectly, because in this case the ellipse was not able to capture that the FL envelops the TL. Figure \ref{fig:dataset1_c} shows the same case, but by using 10 harmonics, the envelopment of the TL by the FL was captured and the surface was reconstructed correctly. 
+
+\chapter{Conclusion and Future Work}\label{chap:basics}
+
+In this thesis we demonstrated how EFDs can be used to model an AD. The results are promising and show that EFDs are an improvement to the modeling of vascular structures by ellipses. We also tested two different chain codes to represent the contour and determined that the VCC has some advantages to the Freeman chain code. 
+
+However, we also encountered several problems that could be changed in future works. One of them is the surface reconstruction algorithm that we used. The algorithm was not able to reconstruct a surface in many cases. The surface reconstruction also is sometimes inaccurate, which can be seen in Figure \ref{fig:dataset1_c}. In the Figure the vessel wall surface intersects the FL, even though all points from the vessel wall point cloud are outside the lumen.
+
+Another improvement, could be made to the overlap correction to better prevent gaps between the TL and FL. We observed that such gaps can occur after reconstruction from EFDs if the FL envelops the TL. In the rendering results these gaps looks like distracting shadows on the inside of the lumen. They are visible because of the transparency for example in Figure \ref{fig:dataset3_a}, and Figure \ref{fig:dataset3_b}.
+
+A straightforward future work could be to also measure the smoothness of the reconstructed contours.  
 
 \subfilebib % Makes bibliography available when compiling as subfile
 \end{document}
